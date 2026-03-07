@@ -37,6 +37,7 @@ const Index = () => {
         <Dashboard
           kids={kids}
           onGoToGrocery={() => setScreen("grocery")}
+          onGoToPlanner={() => setScreen("planner")}
           onReset={() => setScreen("welcome")}
         />
       )}
