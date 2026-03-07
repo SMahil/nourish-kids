@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Sparkles, Upload, RefreshCw, Settings } from "lucide-react";
+import { Sparkles, Upload, RefreshCw, Settings, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import RecipeCard from "@/components/RecipeCard";
 import { mockRecipes } from "@/lib/mockData";
@@ -8,10 +8,11 @@ import { KidProfile } from "@/lib/types";
 interface Props {
   kids: KidProfile[];
   onGoToGrocery: () => void;
+  onGoToPlanner: () => void;
   onReset: () => void;
 }
 
-const Dashboard = ({ kids, onGoToGrocery, onReset }: Props) => {
+const Dashboard = ({ kids, onGoToGrocery, onGoToPlanner, onReset }: Props) => {
   const kidNames = kids.map((k) => k.name || "your child").join(" & ");
 
   return (
@@ -41,7 +42,7 @@ const Dashboard = ({ kids, onGoToGrocery, onReset }: Props) => {
         </motion.div>
 
         {/* Action Cards */}
-        <div className="mb-8 grid grid-cols-2 gap-3">
+        <div className="mb-8 grid grid-cols-3 gap-3">
           <motion.button
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -62,6 +63,17 @@ const Dashboard = ({ kids, onGoToGrocery, onReset }: Props) => {
           >
             <Upload size={24} />
             <span className="text-sm font-bold">From Groceries</span>
+          </motion.button>
+
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-col items-center gap-2 rounded-2xl bg-secondary p-5 text-secondary-foreground shadow-soft hover:opacity-90 transition-opacity"
+            onClick={onGoToPlanner}
+          >
+            <CalendarDays size={24} />
+            <span className="text-sm font-bold">Week Plan</span>
           </motion.button>
         </div>
 
