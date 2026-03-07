@@ -4,9 +4,10 @@ import OnboardingKidProfile from "@/components/OnboardingKidProfile";
 import OnboardingPreferences from "@/components/OnboardingPreferences";
 import Dashboard from "@/components/Dashboard";
 import GroceryUpload from "@/components/GroceryUpload";
+import WeeklyPlanner from "@/components/WeeklyPlanner";
 import { KidProfile } from "@/lib/types";
 
-type Screen = "welcome" | "kids" | "preferences" | "dashboard" | "grocery";
+type Screen = "welcome" | "kids" | "preferences" | "dashboard" | "grocery" | "planner";
 
 const Index = () => {
   const [screen, setScreen] = useState<Screen>("welcome");
@@ -41,6 +42,9 @@ const Index = () => {
       )}
       {screen === "grocery" && (
         <GroceryUpload onBack={() => setScreen("dashboard")} />
+      )}
+      {screen === "planner" && (
+        <WeeklyPlanner onBack={() => setScreen("dashboard")} />
       )}
     </div>
   );
