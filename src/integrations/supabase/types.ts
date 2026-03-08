@@ -83,18 +83,24 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          cuisine_preferences: string[] | null
           display_name: string | null
           id: string
+          max_cooking_time: string | null
         }
         Insert: {
           created_at?: string
+          cuisine_preferences?: string[] | null
           display_name?: string | null
           id: string
+          max_cooking_time?: string | null
         }
         Update: {
           created_at?: string
+          cuisine_preferences?: string[] | null
           display_name?: string | null
           id?: string
+          max_cooking_time?: string | null
         }
         Relationships: []
       }
