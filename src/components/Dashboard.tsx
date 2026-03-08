@@ -196,9 +196,9 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
           <div className="flex flex-wrap gap-1.5">
             {kids.flatMap((kid) => [
               ...kid.favorites.map((f) => (
-                <span key={`${kid.name}-fav-${f}`} className="rounded-full bg-accent/20 px-3 py-1 text-xs font-medium text-accent">
-                  ❤️ {f}
-                </span>
+                  <span key={`${kid.name}-fav-${f}`} className="inline-flex items-center gap-1 rounded-full bg-accent/20 px-3 py-1 text-xs font-medium text-accent">
+                    <Heart size={10} /> {f}
+                  </span>
               )),
               ...kid.allergies.map((a) => (
                 <span key={`${kid.name}-allergy-${a}`} className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">
