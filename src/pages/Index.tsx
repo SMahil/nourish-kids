@@ -27,7 +27,7 @@ const Index = () => {
   // Redirect to auth if not logged in and not guest
   useEffect(() => {
     if (!authLoading && !user && !isGuest) {
-      navigate("/auth");
+      navigate("/auth", { replace: true });
     }
   }, [authLoading, user, isGuest, navigate]);
 
@@ -38,6 +38,11 @@ const Index = () => {
       setScreen("dashboard");
     }
   }, [kidsLoading, hasKids, kids, screen, user]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth", { replace: true });
+  };
 
   if (authLoading || (!isGuest && kidsLoading)) {
     return (
@@ -82,7 +87,7 @@ const Index = () => {
           onGoToGrocery={() => setScreen("grocery")}
           onGoToPlanner={() => setScreen("planner")}
           onReset={() => setScreen("kids")}
-          onSignOut={signOut}
+          onSignOut={handleSignOut}
         />
       )}
       {screen === "grocery" && (

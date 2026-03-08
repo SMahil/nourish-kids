@@ -222,38 +222,49 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
             )}
           </div>
 
-          {/* Cuisine filter */}
-          {availableCuisines.length > 1 && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <Filter size={14} className="text-muted-foreground shrink-0" />
-              <button
-                onClick={() => setActiveCuisine(null)}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
-                  !activeCuisine
-                    ? "gradient-warm text-primary-foreground shadow-warm"
-                    : "bg-muted text-muted-foreground hover:bg-border"
-                }`}
-              >
-                All ({recipes.length})
-              </button>
-              {availableCuisines.map((c) => {
-                const count = recipes.filter((r) => r.cuisine === c).length;
-                return (
-                  <button
-                    key={c}
-                    onClick={() => setActiveCuisine(activeCuisine === c ? null : c)}
-                    className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
-                      activeCuisine === c
-                        ? "gradient-warm text-primary-foreground shadow-warm"
-                        : "bg-muted text-muted-foreground hover:bg-border"
-                    }`}
-                  >
-                    {c} ({count})
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          {/* Filters */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <Filter size={14} className="text-muted-foreground shrink-0" />
+
+            {/* Time filter indicator */}
+            {maxMinutes < Infinity && (
+              <span className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
+                ⏱️ ≤ {maxMinutes} min
+              </span>
+            )}
+
+            {/* Cuisine chips */}
+            {availableCuisines.length > 1 && (
+              <>
+                <button
+                  onClick={() => setActiveCuisine(null)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
+                    !activeCuisine
+                      ? "gradient-warm text-primary-foreground shadow-warm"
+                      : "bg-muted text-muted-foreground hover:bg-border"
+                  }`}
+                >
+                  All ({recipes.length})
+                </button>
+                {availableCuisines.map((c) => {
+                  const count = recipes.filter((r) => r.cuisine === c).length;
+                  return (
+                    <button
+                      key={c}
+                      onClick={() => setActiveCuisine(activeCuisine === c ? null : c)}
+                      className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
+                        activeCuisine === c
+                          ? "gradient-warm text-primary-foreground shadow-warm"
+                          : "bg-muted text-muted-foreground hover:bg-border"
+                      }`}
+                    >
+                      {c} ({count})
+                    </button>
+                  );
+                })}
+              </>
+            )}
+          </div>
 
           {isLoading ? (
             <div className="space-y-4">
@@ -280,9 +291,16 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
             ))
           ) : (
             <div className="rounded-2xl border border-dashed border-border p-8 text-center">
-              <p className="text-muted-foreground text-sm">No recipes match this cuisine filter.</p>
-              <button onClick={() => setActiveCuisine(null)} className="mt-2 text-primary text-sm font-semibold hover:underline">
-                Show all recipes
+              <p className="text-muted-foreground text-sm">
+                No recipes match your filters
+                {activeCuisine ? ` (${activeCuisine})` : ""}
+                {maxMinutes < Infinity ? ` under ${maxMinutes} min` : ""}.
+              </p>
+              <button
+                onClick={() => setActiveCuisine(null)}
+                className="mt-2 text-primary text-sm font-semibold hover:underline"
+              >
+                Clear filters & show all
               </button>
             </div>
           )}
