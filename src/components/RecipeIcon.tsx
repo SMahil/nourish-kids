@@ -16,7 +16,7 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   cookie: Cookie,
   sandwich: Sandwich,
   coffee: Coffee,
-  "ice-cream": IceCreamConeCone,
+  "ice-cream": IceCreamCone,
   egg: Egg,
   fish: Fish,
   beef: Beef,
