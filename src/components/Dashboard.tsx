@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 interface Props {
   kids: KidProfile[];
   cuisinePreferences?: string[];
+  maxCookingTime?: string;
   onGoToGrocery: () => void;
   onGoToPlanner: () => void;
   onReset: () => void;
