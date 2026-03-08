@@ -1,7 +1,7 @@
 import {
   UtensilsCrossed, Pizza, CakeSlice, Salad, Soup, Cookie, Sandwich,
-  Coffee, IceCream, Egg, Fish, Beef, Apple, Cherry, Grape, Carrot,
-  Wheat, Cup, Milk, Flame, LeafyGreen, Bean, CircleDot, Croissant,
+  Coffee, IceCreamCone, Egg, Fish, Beef, Apple, Cherry, Grape, Carrot,
+  Wheat, CupSoda, Milk, Flame, LeafyGreen, Bean, CircleDot, Croissant,
   Wine, GlassWater, Drumstick, Popcorn,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
