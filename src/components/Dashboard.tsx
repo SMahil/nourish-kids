@@ -39,10 +39,11 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
 
   // Parse max minutes from cooking time preference
   const maxMinutes = useMemo(() => {
+    if (effectiveMaxMinutes !== null) return effectiveMaxMinutes;
     if (!maxCookingTime || maxCookingTime === "45+ min") return Infinity;
     const num = parseInt(maxCookingTime);
     return isNaN(num) ? Infinity : num;
-  }, [maxCookingTime]);
+  }, [maxCookingTime, effectiveMaxMinutes]);
 
   // Helper to parse minutes from recipe cookTime string
   const parseMinutes = (cookTime: string): number => {
