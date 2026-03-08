@@ -91,6 +91,7 @@ Return recipes as a JSON array using the exact schema — no markdown, no extra 
                           tags: { type: "array", items: { type: "string" } },
                           icon: { type: "string", description: "Lucide icon name from allowed set" },
                           cuisine: { type: "string" },
+                          matchReasons: { type: "array", items: { type: "string" }, description: "2-3 personalized reasons why this recipe suits the kids" },
                           nutrition: {
                             type: "object",
                             properties: {
@@ -103,7 +104,7 @@ Return recipes as a JSON array using the exact schema — no markdown, no extra 
                             required: ["calories", "protein", "carbs", "fat", "fiber"],
                           },
                         },
-                        required: ["id", "title", "cookTime", "difficulty", "servings", "kidApproval", "ingredients", "steps", "tags", "icon", "cuisine", "nutrition"],
+                        required: ["id", "title", "cookTime", "difficulty", "servings", "kidApproval", "ingredients", "steps", "tags", "icon", "cuisine", "matchReasons", "nutrition"],
                         additionalProperties: false,
                       },
                     },
