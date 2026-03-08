@@ -378,15 +378,26 @@ const WeeklyPlanner = ({ onBack }: Props) => {
                   {filledCount}/{totalSlots} meals
                 </div>
                 {filledCount > 0 && (
-                  <Button
-                    onClick={() => setShowShoppingList(!showShoppingList)}
-                    className={`rounded-full gap-2 text-xs ${showShoppingList ? "gradient-warm text-primary-foreground shadow-warm border-0" : ""}`}
-                    variant={showShoppingList ? "default" : "outline"}
-                    size="sm"
-                  >
-                    <ShoppingCart size={14} />
-                    Shopping ({shoppingList.length})
-                  </Button>
+                  <>
+                    <Button
+                      onClick={() => { setShowNutrition(!showNutrition); if (!showNutrition) setShowShoppingList(false); }}
+                      className={`rounded-full gap-2 text-xs ${showNutrition ? "gradient-warm text-primary-foreground shadow-warm border-0" : ""}`}
+                      variant={showNutrition ? "default" : "outline"}
+                      size="sm"
+                    >
+                      <BarChart3 size={14} />
+                      Nutrition
+                    </Button>
+                    <Button
+                      onClick={() => { setShowShoppingList(!showShoppingList); if (!showShoppingList) setShowNutrition(false); }}
+                      className={`rounded-full gap-2 text-xs ${showShoppingList ? "gradient-warm text-primary-foreground shadow-warm border-0" : ""}`}
+                      variant={showShoppingList ? "default" : "outline"}
+                      size="sm"
+                    >
+                      <ShoppingCart size={14} />
+                      Shopping ({shoppingList.length})
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
