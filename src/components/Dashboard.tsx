@@ -23,7 +23,21 @@ const Dashboard = ({ kids, cuisinePreferences, onGoToGrocery, onGoToPlanner, onR
   const [recipes, setRecipes] = useState<Recipe[]>(mockRecipes);
   const [isLoading, setIsLoading] = useState(false);
   const [hasAiRecipes, setHasAiRecipes] = useState(false);
+  const [activeCuisine, setActiveCuisine] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Get unique cuisines from current recipes
+  const availableCuisines = useMemo(() => {
+    const cuisines = new Set<string>();
+    recipes.forEach((r) => { if (r.cuisine) cuisines.add(r.cuisine); });
+    return Array.from(cuisines).sort();
+  }, [recipes]);
+
+  // Filtered recipes
+  const filteredRecipes = useMemo(() => {
+    if (!activeCuisine) return recipes;
+    return recipes.filter((r) => r.cuisine === activeCuisine);
+  }, [recipes, activeCuisine]);
 
   const fetchAiSuggestions = async () => {
     setIsLoading(true);
