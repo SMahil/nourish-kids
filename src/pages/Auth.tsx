@@ -1,12 +1,14 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, UserRound } from "lucide-react";
 
 const Auth = () => {
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -108,6 +110,24 @@ const Auth = () => {
             {isLogin ? "Sign In" : "Create Account"}
           </Button>
         </form>
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-border" />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-background px-3 text-muted-foreground">or</span>
+          </div>
+        </div>
+
+        <Button
+          variant="outline"
+          onClick={() => navigate("/?guest=true")}
+          className="w-full rounded-full"
+        >
+          <UserRound size={18} className="mr-2" />
+          Continue as Guest
+        </Button>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useKidProfiles } from "@/hooks/useKidProfiles";
 import OnboardingWelcome from "@/components/OnboardingWelcome";
@@ -16,26 +16,28 @@ type Screen = "welcome" | "kids" | "preferences" | "dashboard" | "grocery" | "pl
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isGuest = searchParams.get("guest") === "true";
   const { kids, loading: kidsLoading, saveKids, hasKids } = useKidProfiles();
   const [screen, setScreen] = useState<Screen>("welcome");
   const [localKids, setLocalKids] = useState<KidProfile[]>([]);
 
-  // Redirect to auth if not logged in
+  // Redirect to auth if not logged in and not guest
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!authLoading && !user && !isGuest) {
       navigate("/auth");
     }
-  }, [authLoading, user, navigate]);
+  }, [authLoading, user, isGuest, navigate]);
 
-  // Skip onboarding if user already has kid profiles
+  // Skip onboarding if authenticated user already has kid profiles
   useEffect(() => {
-    if (!kidsLoading && hasKids && screen === "welcome") {
+    if (!kidsLoading && hasKids && screen === "welcome" && user) {
       setLocalKids(kids);
       setScreen("dashboard");
     }
-  }, [kidsLoading, hasKids, kids, screen]);
+  }, [kidsLoading, hasKids, kids, screen, user]);
 
-  if (authLoading || kidsLoading) {
+  if (authLoading || (!isGuest && kidsLoading)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="animate-spin text-primary" size={32} />
@@ -43,7 +45,7 @@ const Index = () => {
     );
   }
 
-  if (!user) return null;
+  if (!user && !isGuest) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -54,7 +56,7 @@ const Index = () => {
         <OnboardingKidProfile
           onComplete={async (k) => {
             setLocalKids(k);
-            await saveKids(k);
+            if (user) await saveKids(k);
             setScreen("preferences");
           }}
           onBack={() => setScreen("welcome")}
