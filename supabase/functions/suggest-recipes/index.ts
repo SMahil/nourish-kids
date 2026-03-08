@@ -102,7 +102,7 @@ Return recipes as a JSON array using the exact schema — no markdown, no extra 
                             required: ["calories", "protein", "carbs", "fat", "fiber"],
                           },
                         },
-                        required: ["id", "title", "cookTime", "difficulty", "servings", "kidApproval", "ingredients", "steps", "tags", "emoji", "cuisine", "nutrition"],
+                        required: ["id", "title", "cookTime", "difficulty", "servings", "kidApproval", "ingredients", "steps", "tags", "icon", "cuisine", "nutrition"],
                         additionalProperties: false,
                       },
                     },
