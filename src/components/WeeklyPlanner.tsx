@@ -240,7 +240,9 @@ const WeeklyPlanner = ({ onBack }: Props) => {
             </button>
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
-                <h1 className="text-xl sm:text-2xl font-extrabold text-foreground">📅 Weekly Meal Planner</h1>
+                <h1 className="text-xl sm:text-2xl font-extrabold text-foreground flex items-center gap-2">
+                  <CalendarDays size={22} className="text-primary" /> Weekly Meal Planner
+                </h1>
                 <p className="text-xs sm:text-sm text-muted-foreground">
                   Drag recipes from the sidebar into your week
                 </p>
