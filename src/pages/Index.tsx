@@ -21,6 +21,7 @@ const Index = () => {
   const { kids, loading: kidsLoading, saveKids, hasKids } = useKidProfiles();
   const [screen, setScreen] = useState<Screen>("welcome");
   const [localKids, setLocalKids] = useState<KidProfile[]>([]);
+  const [cuisinePreferences, setCuisinePreferences] = useState<string[]>([]);
 
   // Redirect to auth if not logged in and not guest
   useEffect(() => {
