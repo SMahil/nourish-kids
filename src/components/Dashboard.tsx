@@ -84,6 +84,17 @@ const Dashboard = ({ kids, onGoToGrocery, onGoToPlanner, onReset, onSignOut }: P
             >
               <Settings size={18} />
             </Button>
+            {onSignOut && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={onSignOut}
+                className="rounded-full"
+                title="Sign Out"
+              >
+                <LogOut size={18} />
+              </Button>
+            )}
           </div>
         </motion.div>
 
