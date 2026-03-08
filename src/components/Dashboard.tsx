@@ -212,8 +212,30 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
           </div>
         </motion.div>
 
+        {/* Tabs: Recipes vs Favorites */}
+        <div className="mb-4 flex gap-2">
+          <button
+            onClick={() => setShowFavorites(false)}
+            className={`rounded-full px-4 py-2 text-sm font-bold transition-all ${
+              !showFavorites ? "gradient-warm text-primary-foreground shadow-warm" : "bg-muted text-muted-foreground hover:bg-border"
+            }`}
+          >
+            {hasAiRecipes ? "AI Recipes" : "Recipes"}
+          </button>
+          <button
+            onClick={() => setShowFavorites(true)}
+            className={`rounded-full px-4 py-2 text-sm font-bold transition-all flex items-center gap-1.5 ${
+              showFavorites ? "gradient-warm text-primary-foreground shadow-warm" : "bg-muted text-muted-foreground hover:bg-border"
+            }`}
+          >
+            <Heart size={14} className={showFavorites ? "fill-current" : ""} />
+            Favorites {favorites.length > 0 && `(${favorites.length})`}
+          </button>
+        </div>
+
         {/* Recipe list */}
         <div className="space-y-4">
+          {!showFavorites && (
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
               {hasAiRecipes ? <Bot size={18} className="text-primary" /> : <Sparkles size={18} className="text-primary" />}
