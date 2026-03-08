@@ -280,9 +280,16 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
             ))
           ) : (
             <div className="rounded-2xl border border-dashed border-border p-8 text-center">
-              <p className="text-muted-foreground text-sm">No recipes match this cuisine filter.</p>
-              <button onClick={() => setActiveCuisine(null)} className="mt-2 text-primary text-sm font-semibold hover:underline">
-                Show all recipes
+              <p className="text-muted-foreground text-sm">
+                No recipes match your filters
+                {activeCuisine ? ` (${activeCuisine})` : ""}
+                {maxMinutes < Infinity ? ` under ${maxMinutes} min` : ""}.
+              </p>
+              <button
+                onClick={() => setActiveCuisine(null)}
+                className="mt-2 text-primary text-sm font-semibold hover:underline"
+              >
+                Clear filters & show all
               </button>
             </div>
           )}
