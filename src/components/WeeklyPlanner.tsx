@@ -10,10 +10,11 @@ import {
   DragStartEvent,
   DragEndEvent,
 } from "@dnd-kit/core";
-import { ArrowLeft, Trash2, GripVertical } from "lucide-react";
+import { ArrowLeft, Trash2, GripVertical, Loader2 } from "lucide-react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { mockRecipes } from "@/lib/mockData";
 import { Recipe } from "@/lib/types";
+import { useMealPlans } from "@/hooks/useMealPlans";
 
 interface Props {
   onBack: () => void;
@@ -21,9 +22,6 @@ interface Props {
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const MEALS = ["Breakfast", "Lunch", "Dinner"] as const;
-
-type MealSlot = { day: string; meal: string };
-type PlannedMeals = Record<string, Recipe | null>; // key: "day-meal"
 
 const slotKey = (day: string, meal: string) => `${day}-${meal}`;
 
@@ -112,7 +110,7 @@ function DroppableSlot({
 }
 
 const WeeklyPlanner = ({ onBack }: Props) => {
-  const [planned, setPlanned] = useState<PlannedMeals>({});
+  const { planned, loading, setMeal, removeMeal } = useMealPlans();
   const [activeRecipe, setActiveRecipe] = useState<Recipe | null>(null);
 
   const sensors = useSensors(
@@ -132,22 +130,22 @@ const WeeklyPlanner = ({ onBack }: Props) => {
     if (!recipe) return;
 
     const dropId = String(over.id);
-    // Only drop on meal slots
     if (DAYS.some((d) => MEALS.some((m) => slotKey(d, m) === dropId))) {
-      setPlanned((prev) => ({ ...prev, [dropId]: recipe }));
+      const [day, meal] = dropId.split("-");
+      setMeal(day, meal, recipe);
     }
   };
 
-  const removeRecipe = (key: string) => {
-    setPlanned((prev) => {
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
-  };
-
-  const filledCount = Object.keys(planned).length;
+  const filledCount = Object.keys(planned).filter(k => planned[k]).length;
   const totalSlots = DAYS.length * MEALS.length;
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="animate-spin text-primary" size={32} />
+      </div>
+    );
+  }
 
   return (
     <DndContext
@@ -183,7 +181,6 @@ const WeeklyPlanner = ({ onBack }: Props) => {
           </motion.div>
 
           <div className="flex gap-6 flex-col lg:flex-row">
-            {/* Recipe sidebar */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -198,7 +195,6 @@ const WeeklyPlanner = ({ onBack }: Props) => {
               </div>
             </motion.div>
 
-            {/* Calendar grid */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -206,7 +202,6 @@ const WeeklyPlanner = ({ onBack }: Props) => {
               className="flex-1 overflow-x-auto"
             >
               <div className="min-w-[640px]">
-                {/* Header */}
                 <div className="grid grid-cols-[80px_repeat(7,1fr)] gap-2 mb-2">
                   <div />
                   {DAYS.map((day) => (
@@ -219,7 +214,6 @@ const WeeklyPlanner = ({ onBack }: Props) => {
                   ))}
                 </div>
 
-                {/* Meal rows */}
                 {MEALS.map((meal) => (
                   <div key={meal} className="grid grid-cols-[80px_repeat(7,1fr)] gap-2 mb-2">
                     <div className="flex items-center justify-center text-xs font-bold text-muted-foreground">
@@ -234,7 +228,7 @@ const WeeklyPlanner = ({ onBack }: Props) => {
                           day={day}
                           meal={meal}
                           recipe={planned[key] ?? null}
-                          onRemove={() => removeRecipe(key)}
+                          onRemove={() => removeMeal(day, meal)}
                         />
                       );
                     })}
