@@ -236,8 +236,8 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
 
             {/* Time filter indicator */}
             {maxMinutes < Infinity && (
-              <span className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
-                ⏱️ ≤ {maxMinutes} min
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
+                <Timer size={12} /> &le; {maxMinutes} min
               </span>
             )}
 
