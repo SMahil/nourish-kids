@@ -15,7 +15,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const { kids } = await req.json();
+    const { kids, cuisinePreferences } = await req.json();
 
     const kidDescriptions = kids
       .map(
@@ -24,13 +24,20 @@ serve(async (req) => {
       )
       .join("\n");
 
+    const cuisineNote = cuisinePreferences?.length
+      ? `Preferred cuisines: ${cuisinePreferences.join(", ")}. Prioritize these but include variety.`
+      : "";
+
     const systemPrompt = `You are a kid-friendly recipe expert. Generate 5 creative, nutritious recipes that children will love.
 Each recipe must avoid the listed allergies, respect dislikes, and incorporate favorites when possible.
+${cuisineNote}
 Focus on quick, practical meals (under 30 min) that busy parents can make.
-Return recipes as a JSON array using this exact schema — no markdown, no extra text.`;
+Include estimated nutrition info per serving (calories, protein, carbs, fat, fiber in grams).
+Tag each recipe with its cuisine type.
+Return recipes as a JSON array using the exact schema — no markdown, no extra text.`;
 
     const userPrompt = `Kid profiles:\n${kidDescriptions}\n\nReturn a JSON array of 5 recipe objects with these fields:
-{ "id": string, "title": string, "cookTime": string, "difficulty": "Easy"|"Medium", "servings": number, "kidApproval": number (70-99), "ingredients": string[], "steps": string[], "tags": string[], "emoji": string }`;
+{ "id": string, "title": string, "cookTime": string, "difficulty": "Easy"|"Medium", "servings": number, "kidApproval": number (70-99), "ingredients": string[], "steps": string[], "tags": string[], "emoji": string, "cuisine": string, "nutrition": { "calories": number, "protein": number, "carbs": number, "fat": number, "fiber": number } }`;
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -70,8 +77,20 @@ Return recipes as a JSON array using this exact schema — no markdown, no extra
                           steps: { type: "array", items: { type: "string" } },
                           tags: { type: "array", items: { type: "string" } },
                           emoji: { type: "string" },
+                          cuisine: { type: "string" },
+                          nutrition: {
+                            type: "object",
+                            properties: {
+                              calories: { type: "number" },
+                              protein: { type: "number" },
+                              carbs: { type: "number" },
+                              fat: { type: "number" },
+                              fiber: { type: "number" },
+                            },
+                            required: ["calories", "protein", "carbs", "fat", "fiber"],
+                          },
                         },
-                        required: ["id", "title", "cookTime", "difficulty", "servings", "kidApproval", "ingredients", "steps", "tags", "emoji"],
+                        required: ["id", "title", "cookTime", "difficulty", "servings", "kidApproval", "ingredients", "steps", "tags", "emoji", "cuisine", "nutrition"],
                         additionalProperties: false,
                       },
                     },
@@ -113,7 +132,6 @@ Return recipes as a JSON array using this exact schema — no markdown, no extra
       const parsed = JSON.parse(toolCall.function.arguments);
       recipes = parsed.recipes;
     } else {
-      // Fallback: try parsing content directly
       const content = data.choices?.[0]?.message?.content || "[]";
       const cleaned = content.replace(/```json\n?|```/g, "").trim();
       recipes = JSON.parse(cleaned);

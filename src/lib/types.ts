@@ -1,3 +1,11 @@
+export interface NutritionInfo {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
+}
+
 export interface KidProfile {
   name: string;
   age: string;
@@ -25,4 +33,6 @@ export interface Recipe {
   steps: string[];
   tags: string[];
   emoji: string;
+  cuisine?: string;
+  nutrition?: NutritionInfo;
 }
