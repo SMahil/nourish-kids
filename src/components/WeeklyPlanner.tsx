@@ -53,7 +53,7 @@ function DraggableRecipe({ recipe, overlay }: { recipe: Recipe; overlay?: boolea
       }`}
     >
       <GripVertical size={14} className="text-muted-foreground shrink-0" />
-      <span className="text-base">{recipe.emoji}</span>
+      <RecipeIcon icon={recipe.icon} size={16} />
       <div className="min-w-0">
         <p className="text-xs font-bold text-foreground truncate">{recipe.title}</p>
         <p className="text-[10px] text-muted-foreground">{recipe.cookTime}</p>
