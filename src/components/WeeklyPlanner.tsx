@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   DndContext,
   DragOverlay,
@@ -10,11 +10,13 @@ import {
   DragStartEvent,
   DragEndEvent,
 } from "@dnd-kit/core";
-import { ArrowLeft, Trash2, GripVertical, Loader2 } from "lucide-react";
+import { ArrowLeft, Trash2, GripVertical, Loader2, ShoppingCart, Check, Copy, X } from "lucide-react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { mockRecipes } from "@/lib/mockData";
 import { Recipe } from "@/lib/types";
 import { useMealPlans } from "@/hooks/useMealPlans";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface Props {
   onBack: () => void;
