@@ -17,7 +17,7 @@ interface Props {
   onSignOut?: () => void;
 }
 
-const Dashboard = ({ kids, onGoToGrocery, onGoToPlanner, onReset }: Props) => {
+const Dashboard = ({ kids, onGoToGrocery, onGoToPlanner, onReset, onSignOut }: Props) => {
   const kidNames = kids.map((k) => k.name || "your child").join(" & ");
   const [recipes, setRecipes] = useState<Recipe[]>(mockRecipes);
   const [isLoading, setIsLoading] = useState(false);
