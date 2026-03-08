@@ -58,6 +58,11 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
     });
   }, [recipes, activeCuisine, maxMinutes]);
 
+  // Auto-fetch real recipes on mount
+  useEffect(() => {
+    fetchAiSuggestions();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const fetchAiSuggestions = async () => {
     setIsLoading(true);
     try {
