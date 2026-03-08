@@ -477,6 +477,20 @@ const WeeklyPlanner = ({ onBack }: Props) => {
             </div>
           </div>
 
+          {/* Nutrition Snapshot Panel */}
+          <AnimatePresence>
+            {showNutrition && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: "auto" }}
+                exit={{ opacity: 0, y: 20, height: 0 }}
+                className="mt-6 overflow-hidden"
+              >
+                <NutritionSnapshot planned={planned} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Shopping List Panel — outside the flex container */}
           <AnimatePresence>
             {showShoppingList && shoppingList.length > 0 && (
