@@ -11,7 +11,10 @@ export function useMealPlans() {
   const [loading, setLoading] = useState(true);
 
   const fetchPlans = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { data } = await supabase
       .from("meal_plans")
@@ -33,10 +36,10 @@ export function useMealPlans() {
   }, [fetchPlans]);
 
   const setMeal = async (day: string, meal: string, recipe: Recipe) => {
-    if (!user) return;
     const key = `${day}-${meal}`;
     setPlanned((prev) => ({ ...prev, [key]: recipe }));
 
+    if (!user) return; // guest mode: local state only
     await supabase.from("meal_plans").upsert(
       {
         user_id: user.id,
@@ -49,13 +52,13 @@ export function useMealPlans() {
   };
 
   const removeMeal = async (day: string, meal: string) => {
-    if (!user) return;
     setPlanned((prev) => {
       const next = { ...prev };
       delete next[`${day}-${meal}`];
       return next;
     });
 
+    if (!user) return; // guest mode: local state only
     await supabase
       .from("meal_plans")
       .delete()

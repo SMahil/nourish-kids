@@ -9,7 +9,10 @@ export function useKidProfiles() {
   const [loading, setLoading] = useState(true);
 
   const fetchKids = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { data } = await supabase
       .from("kid_profiles")
