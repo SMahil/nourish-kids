@@ -317,7 +317,7 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
                     size="sm"
                     onClick={() => setEffectiveMaxMinutes(30)}
                   >
-                    ⏱️ Try with 30 min
+                    <Timer size={12} className="mr-1" /> Try with 30 min
                   </Button>
                 )}
               </div>
