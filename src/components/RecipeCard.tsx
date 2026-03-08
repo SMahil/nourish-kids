@@ -85,7 +85,7 @@ const reasonIcons = {
   respects: <ThumbsDown size={10} className="shrink-0" />,
 };
 
-const RecipeCard = ({ recipe, index, kids }: Props) => {
+const RecipeCard = ({ recipe, index, kids, isFavorite, onToggleFavorite }: Props) => {
   const [expanded, setExpanded] = useState(false);
 
   const matchReasons = useMemo(() => {
