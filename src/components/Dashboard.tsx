@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Upload, RefreshCw, Settings, CalendarDays, Loader2, LogOut, Filter } from "lucide-react";
+import { Sparkles, Upload, RefreshCw, Settings, CalendarDays, Loader2, LogOut, Filter, Heart, ShieldAlert, Clock, Bot, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import RecipeCard from "@/components/RecipeCard";
