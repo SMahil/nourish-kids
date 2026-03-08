@@ -8,6 +8,8 @@ interface Props {
   recipe: Recipe;
   index: number;
   kids?: KidProfile[];
+  isFavorite?: boolean;
+  onToggleFavorite?: (recipe: Recipe) => void;
 }
 
 const NutritionBar = ({ label, value, max, color, icon }: { label: string; value: number; max: number; color: string; icon: React.ReactNode }) => {
