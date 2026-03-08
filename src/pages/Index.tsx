@@ -78,6 +78,7 @@ const Index = () => {
         <Dashboard
           kids={localKids.length > 0 ? localKids : kids}
           cuisinePreferences={cuisinePreferences}
+          maxCookingTime={maxCookingTime}
           onGoToGrocery={() => setScreen("grocery")}
           onGoToPlanner={() => setScreen("planner")}
           onReset={() => setScreen("kids")}
