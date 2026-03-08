@@ -286,6 +286,71 @@ const WeeklyPlanner = ({ onBack }: Props) => {
                 ))}
               </div>
             </motion.div>
+          {/* Shopping List Panel */}
+          <AnimatePresence>
+            {showShoppingList && shoppingList.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: "auto" }}
+                exit={{ opacity: 0, y: 20, height: 0 }}
+                className="mt-6 overflow-hidden"
+              >
+                <div className="rounded-2xl bg-card border border-border shadow-soft p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <ShoppingCart size={18} className="text-primary" />
+                      <h3 className="text-lg font-bold text-foreground">Shopping List</h3>
+                      <span className="rounded-full gradient-peach px-2 py-0.5 text-xs font-semibold text-foreground">
+                        {shoppingList.length} items
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={copyShoppingList} className="rounded-full gap-1">
+                        <Copy size={14} /> Copy
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => setShowShoppingList(false)} className="rounded-full h-8 w-8">
+                        <X size={16} />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                    {shoppingList.map((item) => {
+                      const checked = checkedItems.has(item.name);
+                      return (
+                        <button
+                          key={item.name}
+                          onClick={() => toggleCheck(item.name)}
+                          className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-left transition-all ${
+                            checked
+                              ? "bg-muted/50 opacity-60"
+                              : "bg-muted/20 hover:bg-muted/40"
+                          }`}
+                        >
+                          <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors ${
+                            checked
+                              ? "gradient-warm border-transparent"
+                              : "border-border"
+                          }`}>
+                            {checked && <Check size={12} className="text-primary-foreground" />}
+                          </div>
+                          <span className={`text-sm capitalize ${checked ? "line-through text-muted-foreground" : "text-foreground font-medium"}`}>
+                            {item.display}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {checkedItems.size > 0 && (
+                    <p className="mt-3 text-xs text-muted-foreground text-center">
+                      {checkedItems.size} of {shoppingList.length} items checked off
+                    </p>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
           </div>
         </div>
       </div>
