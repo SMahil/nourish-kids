@@ -56,7 +56,7 @@ const Index = () => {
         <OnboardingKidProfile
           onComplete={async (k) => {
             setLocalKids(k);
-            await saveKids(k);
+            if (user) await saveKids(k);
             setScreen("preferences");
           }}
           onBack={() => setScreen("welcome")}
