@@ -303,12 +303,23 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
                 {activeCuisine ? ` (${activeCuisine})` : ""}
                 {maxMinutes < Infinity ? ` under ${maxMinutes} min` : ""}.
               </p>
-              <button
-                onClick={() => setActiveCuisine(null)}
-                className="mt-2 text-primary text-sm font-semibold hover:underline"
-              >
-                Clear filters & show all
-              </button>
+              <div className="mt-3 flex items-center justify-center gap-3">
+                <button
+                  onClick={() => setActiveCuisine(null)}
+                  className="text-primary text-sm font-semibold hover:underline"
+                >
+                  Clear filters
+                </button>
+                {maxMinutes < 30 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEffectiveMaxMinutes(30)}
+                  >
+                    ⏱️ Try with 30 min
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </div>
