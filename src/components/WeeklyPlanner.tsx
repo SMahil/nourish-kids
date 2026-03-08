@@ -275,7 +275,9 @@ const WeeklyPlanner = ({ onBack }: Props) => {
               transition={{ delay: 0.1 }}
               className="w-full lg:w-52 shrink-0"
             >
-              <h3 className="mb-2 text-sm font-bold text-foreground">🍽️ Recipes</h3>
+              <h3 className="mb-2 text-sm font-bold text-foreground flex items-center gap-1.5">
+                <UtensilsCrossed size={14} className="text-primary" /> Recipes
+              </h3>
               <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible lg:max-h-[70vh] lg:overflow-y-auto lg:pr-1 pb-2 lg:pb-0">
                 {mockRecipes.map((recipe) => (
                   <div key={recipe.id} className="shrink-0 lg:shrink">
