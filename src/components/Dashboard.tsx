@@ -212,8 +212,9 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
         {/* Recipe list */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-foreground">
-              {hasAiRecipes ? "🤖 AI-Personalized for your kids" : "✨ Recommended for today"}
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+              {hasAiRecipes ? <Bot size={18} className="text-primary" /> : <Sparkles size={18} className="text-primary" />}
+              {hasAiRecipes ? "AI-Personalized for your kids" : "Recommended for today"}
             </h2>
             {hasAiRecipes && (
               <Button
