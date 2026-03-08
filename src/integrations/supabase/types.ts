@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      favorite_recipes: {
+        Row: {
+          created_at: string
+          id: string
+          recipe_data: Json
+          recipe_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recipe_data: Json
+          recipe_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recipe_data?: Json
+          recipe_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       kid_profiles: {
         Row: {
           age: string
