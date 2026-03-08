@@ -41,7 +41,7 @@ Include estimated nutrition info per serving (calories, protein, carbs, fat, fib
 Tag each recipe with its cuisine type.
 Return recipes as a JSON array using the exact schema — no markdown, no extra text.`;
 
-    const userPrompt = `Kid profiles:\n${kidDescriptions}\n\nReturn a JSON array of 5 recipe objects with these fields:
+    const userPrompt = `Kid profiles:\n${kidDescriptions}\n\nFind 6 REAL recipes from popular cooking sites (e.g. AllRecipes, BBC Good Food, Tasty, etc.) that match all filters. Return a JSON array of recipe objects with these fields:
 { "id": string, "title": string, "cookTime": string, "difficulty": "Easy"|"Medium", "servings": number, "kidApproval": number (70-99), "ingredients": string[], "steps": string[], "tags": string[], "emoji": string, "cuisine": string, "nutrition": { "calories": number, "protein": number, "carbs": number, "fat": number, "fiber": number } }`;
 
     const response = await fetch(

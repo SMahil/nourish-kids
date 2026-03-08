@@ -21,8 +21,8 @@ interface Props {
 
 const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, onGoToPlanner, onReset, onSignOut }: Props) => {
   const kidNames = kids.map((k) => k.name || "your child").join(" & ");
-  const [recipes, setRecipes] = useState<Recipe[]>(mockRecipes);
-  const [isLoading, setIsLoading] = useState(false);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [hasAiRecipes, setHasAiRecipes] = useState(false);
   const [activeCuisine, setActiveCuisine] = useState<string | null>(
     cuisinePreferences?.length === 1 ? cuisinePreferences[0] : null
