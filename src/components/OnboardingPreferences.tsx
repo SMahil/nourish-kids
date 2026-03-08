@@ -55,7 +55,7 @@ const OnboardingPreferences = ({ onComplete, onBack }: Props) => {
         <div className="space-y-6">
           <div>
             <label className="mb-3 block text-sm font-semibold text-foreground">
-              ⏱️ How much time do you usually have?
+              How much time do you usually have?
             </label>
             <div className="flex flex-wrap gap-2">
               {["5 min", "15 min", "30 min", "45+ min"].map((t) => (
