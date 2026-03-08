@@ -68,6 +68,7 @@ const Index = () => {
         <OnboardingPreferences
           onComplete={(prefs) => {
             setCuisinePreferences(prefs.cuisines);
+            setMaxCookingTime(prefs.cookingTime);
             setScreen("dashboard");
           }}
           onBack={() => setScreen("kids")}
