@@ -114,6 +114,41 @@ function DroppableSlot({
 const WeeklyPlanner = ({ onBack }: Props) => {
   const { planned, loading, setMeal, removeMeal } = useMealPlans();
   const [activeRecipe, setActiveRecipe] = useState<Recipe | null>(null);
+  const [showShoppingList, setShowShoppingList] = useState(false);
+  const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
+
+  // Aggregate ingredients from all planned recipes
+  const shoppingList = useMemo(() => {
+    const countMap = new Map<string, number>();
+    Object.values(planned).forEach((recipe) => {
+      if (!recipe) return;
+      recipe.ingredients.forEach((ing) => {
+        const key = ing.toLowerCase().trim();
+        countMap.set(key, (countMap.get(key) || 0) + 1);
+      });
+    });
+    return Array.from(countMap.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([name, count]) => ({ name, count, display: count > 1 ? `${name} (×${count})` : name }));
+  }, [planned]);
+
+  const toggleCheck = (name: string) => {
+    setCheckedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  const copyShoppingList = () => {
+    const text = shoppingList
+      .map((item) => `${checkedItems.has(item.name) ? "✓" : "☐"} ${item.display}`)
+      .join("\n");
+    navigator.clipboard.writeText(text);
+    toast({ title: "📋 Copied!", description: "Shopping list copied to clipboard" });
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
