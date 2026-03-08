@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Upload, RefreshCw, Settings, CalendarDays, Loader2 } from "lucide-react";
+import { Sparkles, Upload, RefreshCw, Settings, CalendarDays, Loader2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import RecipeCard from "@/components/RecipeCard";
@@ -14,9 +14,10 @@ interface Props {
   onGoToGrocery: () => void;
   onGoToPlanner: () => void;
   onReset: () => void;
+  onSignOut?: () => void;
 }
 
-const Dashboard = ({ kids, onGoToGrocery, onGoToPlanner, onReset }: Props) => {
+const Dashboard = ({ kids, onGoToGrocery, onGoToPlanner, onReset, onSignOut }: Props) => {
   const kidNames = kids.map((k) => k.name || "your child").join(" & ");
   const [recipes, setRecipes] = useState<Recipe[]>(mockRecipes);
   const [isLoading, setIsLoading] = useState(false);
@@ -83,6 +84,17 @@ const Dashboard = ({ kids, onGoToGrocery, onGoToPlanner, onReset }: Props) => {
             >
               <Settings size={18} />
             </Button>
+            {onSignOut && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={onSignOut}
+                className="rounded-full"
+                title="Sign Out"
+              >
+                <LogOut size={18} />
+              </Button>
+            )}
           </div>
         </motion.div>
 
