@@ -27,6 +27,7 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
   const [activeCuisine, setActiveCuisine] = useState<string | null>(
     cuisinePreferences?.length === 1 ? cuisinePreferences[0] : null
   );
+  const [effectiveMaxMinutes, setEffectiveMaxMinutes] = useState<number | null>(null);
   const { toast } = useToast();
 
   // Get unique cuisines from current recipes
