@@ -37,7 +37,7 @@ function DraggableRecipe({ recipe, overlay }: { recipe: Recipe; overlay?: boolea
   if (overlay) {
     return (
       <div className="flex items-center gap-2 rounded-xl gradient-warm p-3 text-primary-foreground shadow-warm max-w-[200px]">
-        <span className="text-lg">{recipe.emoji}</span>
+        <RecipeIcon icon={recipe.icon} size={18} />
         <span className="text-xs font-bold truncate">{recipe.title}</span>
       </div>
     );
