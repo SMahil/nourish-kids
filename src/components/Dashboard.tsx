@@ -11,13 +11,14 @@ import { useToast } from "@/hooks/use-toast";
 
 interface Props {
   kids: KidProfile[];
+  cuisinePreferences?: string[];
   onGoToGrocery: () => void;
   onGoToPlanner: () => void;
   onReset: () => void;
   onSignOut?: () => void;
 }
 
-const Dashboard = ({ kids, onGoToGrocery, onGoToPlanner, onReset, onSignOut }: Props) => {
+const Dashboard = ({ kids, cuisinePreferences, onGoToGrocery, onGoToPlanner, onReset, onSignOut }: Props) => {
   const kidNames = kids.map((k) => k.name || "your child").join(" & ");
   const [recipes, setRecipes] = useState<Recipe[]>(mockRecipes);
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +29,7 @@ const Dashboard = ({ kids, onGoToGrocery, onGoToPlanner, onReset, onSignOut }: P
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("suggest-recipes", {
-        body: { kids },
+        body: { kids, cuisinePreferences },
       });
 
       if (error) throw error;

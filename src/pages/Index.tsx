@@ -21,6 +21,7 @@ const Index = () => {
   const { kids, loading: kidsLoading, saveKids, hasKids } = useKidProfiles();
   const [screen, setScreen] = useState<Screen>("welcome");
   const [localKids, setLocalKids] = useState<KidProfile[]>([]);
+  const [cuisinePreferences, setCuisinePreferences] = useState<string[]>([]);
 
   // Redirect to auth if not logged in and not guest
   useEffect(() => {
@@ -64,13 +65,17 @@ const Index = () => {
       )}
       {screen === "preferences" && (
         <OnboardingPreferences
-          onComplete={() => setScreen("dashboard")}
+          onComplete={(prefs) => {
+            setCuisinePreferences(prefs.cuisines);
+            setScreen("dashboard");
+          }}
           onBack={() => setScreen("kids")}
         />
       )}
       {screen === "dashboard" && (
         <Dashboard
           kids={localKids.length > 0 ? localKids : kids}
+          cuisinePreferences={cuisinePreferences}
           onGoToGrocery={() => setScreen("grocery")}
           onGoToPlanner={() => setScreen("planner")}
           onReset={() => setScreen("kids")}

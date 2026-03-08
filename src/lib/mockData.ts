@@ -12,6 +12,8 @@ export const mockRecipes: Recipe[] = [
     steps: ["Spread hummus on tortilla", "Layer sliced veggies", "Add cheese", "Roll tightly and slice"],
     tags: ["Quick", "No-Cook", "Veggie"],
     emoji: "🌯",
+    cuisine: "Mediterranean",
+    nutrition: { calories: 220, protein: 8, carbs: 28, fat: 9, fiber: 4 },
   },
   {
     id: "2",
@@ -24,6 +26,8 @@ export const mockRecipes: Recipe[] = [
     steps: ["Preheat oven to 375°F", "Spread sauce on muffin halves", "Add cheese and toppings as faces", "Bake 10-12 minutes"],
     tags: ["Fun", "Kid-Favorite", "Interactive"],
     emoji: "🍕",
+    cuisine: "Italian",
+    nutrition: { calories: 280, protein: 12, carbs: 30, fat: 12, fiber: 2 },
   },
   {
     id: "3",
@@ -36,6 +40,8 @@ export const mockRecipes: Recipe[] = [
     steps: ["Blend banana, oats, eggs and cinnamon", "Pour small circles on pan", "Cook 2 min each side", "Top with berries"],
     tags: ["Breakfast", "Healthy", "No Sugar Added"],
     emoji: "🥞",
+    cuisine: "American",
+    nutrition: { calories: 195, protein: 7, carbs: 32, fat: 5, fiber: 3 },
   },
   {
     id: "4",
@@ -48,6 +54,8 @@ export const mockRecipes: Recipe[] = [
     steps: ["Steam and chop broccoli", "Mix with cheese, breadcrumbs, egg", "Form into small balls", "Bake at 400°F for 15 min"],
     tags: ["Veggie Hidden", "Snack", "Freezer-Friendly"],
     emoji: "🥦",
+    cuisine: "American",
+    nutrition: { calories: 85, protein: 5, carbs: 8, fat: 4, fiber: 1 },
   },
   {
     id: "5",
@@ -60,6 +68,8 @@ export const mockRecipes: Recipe[] = [
     steps: ["Cook pasta al dente", "Whisk PB, soy, honey, lime", "Toss pasta with sauce", "Top with shredded carrots"],
     tags: ["Quick", "Protein-Rich", "One-Pot"],
     emoji: "🍝",
+    cuisine: "Thai",
+    nutrition: { calories: 340, protein: 14, carbs: 42, fat: 13, fiber: 3 },
   },
   {
     id: "6",
@@ -72,6 +82,8 @@ export const mockRecipes: Recipe[] = [
     steps: ["Blend berries, banana, yogurt until thick", "Pour into bowls", "Top with granola and chia", "Drizzle honey"],
     tags: ["Breakfast", "No-Cook", "Healthy"],
     emoji: "🫐",
+    cuisine: "American",
+    nutrition: { calories: 250, protein: 8, carbs: 45, fat: 5, fiber: 6 },
   },
 ];
 
