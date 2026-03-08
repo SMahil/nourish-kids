@@ -22,6 +22,7 @@ const Index = () => {
   const [screen, setScreen] = useState<Screen>("welcome");
   const [localKids, setLocalKids] = useState<KidProfile[]>([]);
   const [cuisinePreferences, setCuisinePreferences] = useState<string[]>([]);
+  const [maxCookingTime, setMaxCookingTime] = useState<string>("45+ min");
 
   // Redirect to auth if not logged in and not guest
   useEffect(() => {
@@ -67,6 +68,7 @@ const Index = () => {
         <OnboardingPreferences
           onComplete={(prefs) => {
             setCuisinePreferences(prefs.cuisines);
+            setMaxCookingTime(prefs.cookingTime);
             setScreen("dashboard");
           }}
           onBack={() => setScreen("kids")}
@@ -76,6 +78,7 @@ const Index = () => {
         <Dashboard
           kids={localKids.length > 0 ? localKids : kids}
           cuisinePreferences={cuisinePreferences}
+          maxCookingTime={maxCookingTime}
           onGoToGrocery={() => setScreen("grocery")}
           onGoToPlanner={() => setScreen("planner")}
           onReset={() => setScreen("kids")}
