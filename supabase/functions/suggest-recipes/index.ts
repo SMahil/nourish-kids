@@ -15,7 +15,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const { kids, cuisinePreferences } = await req.json();
+    const { kids, cuisinePreferences, maxCookingTime } = await req.json();
 
     const kidDescriptions = kids
       .map(
@@ -25,18 +25,23 @@ serve(async (req) => {
       .join("\n");
 
     const cuisineNote = cuisinePreferences?.length
-      ? `Preferred cuisines: ${cuisinePreferences.join(", ")}. Prioritize these but include variety.`
+      ? `STRICT cuisine filter: ONLY return recipes from these cuisines: ${cuisinePreferences.join(", ")}. Do NOT include any other cuisines.`
       : "";
 
-    const systemPrompt = `You are a kid-friendly recipe expert. Generate 5 creative, nutritious recipes that children will love.
+    const timeNote = maxCookingTime && maxCookingTime !== "45+ min"
+      ? `STRICT time filter: ALL recipes must take ${maxCookingTime} or less to prepare and cook. Do NOT exceed this time.`
+      : "";
+
+    const systemPrompt = `You are a kid-friendly recipe expert who finds REAL recipes from popular cooking websites and blogs.
+Your job is to suggest 6 real, well-known recipes that actually exist online — not invented ones.
 Each recipe must avoid the listed allergies, respect dislikes, and incorporate favorites when possible.
 ${cuisineNote}
-Focus on quick, practical meals (under 30 min) that busy parents can make.
+${timeNote}
 Include estimated nutrition info per serving (calories, protein, carbs, fat, fiber in grams).
 Tag each recipe with its cuisine type.
 Return recipes as a JSON array using the exact schema — no markdown, no extra text.`;
 
-    const userPrompt = `Kid profiles:\n${kidDescriptions}\n\nReturn a JSON array of 5 recipe objects with these fields:
+    const userPrompt = `Kid profiles:\n${kidDescriptions}\n\nFind 6 REAL recipes from popular cooking sites (e.g. AllRecipes, BBC Good Food, Tasty, etc.) that match all filters. Return a JSON array of recipe objects with these fields:
 { "id": string, "title": string, "cookTime": string, "difficulty": "Easy"|"Medium", "servings": number, "kidApproval": number (70-99), "ingredients": string[], "steps": string[], "tags": string[], "emoji": string, "cuisine": string, "nutrition": { "calories": number, "protein": number, "carbs": number, "fat": number, "fiber": number } }`;
 
     const response = await fetch(

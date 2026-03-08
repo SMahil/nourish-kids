@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, Upload, RefreshCw, Settings, CalendarDays, Loader2, LogOut, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,8 @@ interface Props {
 
 const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, onGoToPlanner, onReset, onSignOut }: Props) => {
   const kidNames = kids.map((k) => k.name || "your child").join(" & ");
-  const [recipes, setRecipes] = useState<Recipe[]>(mockRecipes);
-  const [isLoading, setIsLoading] = useState(false);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [hasAiRecipes, setHasAiRecipes] = useState(false);
   const [activeCuisine, setActiveCuisine] = useState<string | null>(
     cuisinePreferences?.length === 1 ? cuisinePreferences[0] : null
@@ -58,11 +58,16 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
     });
   }, [recipes, activeCuisine, maxMinutes]);
 
+  // Auto-fetch real recipes on mount
+  useEffect(() => {
+    fetchAiSuggestions();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const fetchAiSuggestions = async () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("suggest-recipes", {
-        body: { kids, cuisinePreferences },
+        body: { kids, cuisinePreferences, maxCookingTime },
       });
 
       if (error) throw error;
