@@ -17,6 +17,13 @@ serve(async (req) => {
 
     const { kids, cuisinePreferences, maxCookingTime } = await req.json();
 
+    // Parse numeric time limit
+    let timeLimit = 999;
+    if (maxCookingTime && maxCookingTime !== "45+ min") {
+      const parsed = parseInt(maxCookingTime);
+      if (!isNaN(parsed)) timeLimit = parsed;
+    }
+
     const kidDescriptions = kids
       .map(
         (k: any) =>
@@ -28,8 +35,8 @@ serve(async (req) => {
       ? `STRICT cuisine filter: ONLY return recipes from these cuisines: ${cuisinePreferences.join(", ")}. Do NOT include any other cuisines.`
       : "";
 
-    const timeNote = maxCookingTime && maxCookingTime !== "45+ min"
-      ? `STRICT time filter: ALL recipes must take ${maxCookingTime} or less to prepare and cook. Do NOT exceed this time.`
+    const timeNote = timeLimit < 999
+      ? `CRITICAL TIME CONSTRAINT: Every single recipe MUST take ${timeLimit} minutes or less total (prep + cook). The "cookTime" field MUST be formatted exactly as "X min" where X is a number ≤ ${timeLimit}. For example: "10 min", "15 min". Do NOT return any recipe that takes more than ${timeLimit} minutes. Focus on quick recipes like stir-fries, salads, wraps, smoothies, instant noodles, sandwiches, quick rice dishes, etc.`
       : "";
 
     const systemPrompt = `You are a kid-friendly recipe expert who finds REAL recipes from popular cooking websites and blogs.
@@ -41,7 +48,7 @@ Include estimated nutrition info per serving (calories, protein, carbs, fat, fib
 Tag each recipe with its cuisine type.
 Return recipes as a JSON array using the exact schema — no markdown, no extra text.`;
 
-    const userPrompt = `Kid profiles:\n${kidDescriptions}\n\nFind 6 REAL recipes from popular cooking sites (e.g. AllRecipes, BBC Good Food, Tasty, etc.) that match all filters. Return a JSON array of recipe objects with these fields:
+    const userPrompt = `Kid profiles:\n${kidDescriptions}\n\nFind 6 REAL recipes from popular cooking sites (e.g. AllRecipes, BBC Good Food, Tasty, etc.) that match all filters.${timeLimit < 999 ? ` REMEMBER: Every recipe must be ${timeLimit} minutes or less. cookTime must be "X min" where X ≤ ${timeLimit}.` : ""} Return a JSON array of recipe objects with these fields:
 { "id": string, "title": string, "cookTime": string, "difficulty": "Easy"|"Medium", "servings": number, "kidApproval": number (70-99), "ingredients": string[], "steps": string[], "tags": string[], "emoji": string, "cuisine": string, "nutrition": { "calories": number, "protein": number, "carbs": number, "fat": number, "fiber": number } }`;
 
     const response = await fetch(
@@ -74,7 +81,7 @@ Return recipes as a JSON array using the exact schema — no markdown, no extra 
                         properties: {
                           id: { type: "string" },
                           title: { type: "string" },
-                          cookTime: { type: "string" },
+                          cookTime: { type: "string", description: `Format: "X min" where X ≤ ${timeLimit}` },
                           difficulty: { type: "string", enum: ["Easy", "Medium"] },
                           servings: { type: "number" },
                           kidApproval: { type: "number" },
@@ -140,6 +147,15 @@ Return recipes as a JSON array using the exact schema — no markdown, no extra 
       const content = data.choices?.[0]?.message?.content || "[]";
       const cleaned = content.replace(/```json\n?|```/g, "").trim();
       recipes = JSON.parse(cleaned);
+    }
+
+    // Server-side time validation: filter out any recipes exceeding the limit
+    if (timeLimit < 999 && Array.isArray(recipes)) {
+      recipes = recipes.filter((r: any) => {
+        const match = String(r.cookTime).match(/(\d+)/);
+        const mins = match ? parseInt(match[1]) : 999;
+        return mins <= timeLimit;
+      });
     }
 
     return new Response(JSON.stringify({ recipes }), {

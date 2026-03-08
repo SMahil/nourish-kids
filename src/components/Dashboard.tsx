@@ -27,6 +27,7 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
   const [activeCuisine, setActiveCuisine] = useState<string | null>(
     cuisinePreferences?.length === 1 ? cuisinePreferences[0] : null
   );
+  const [effectiveMaxMinutes, setEffectiveMaxMinutes] = useState<number | null>(null);
   const { toast } = useToast();
 
   // Get unique cuisines from current recipes
@@ -38,10 +39,11 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
 
   // Parse max minutes from cooking time preference
   const maxMinutes = useMemo(() => {
+    if (effectiveMaxMinutes !== null) return effectiveMaxMinutes;
     if (!maxCookingTime || maxCookingTime === "45+ min") return Infinity;
     const num = parseInt(maxCookingTime);
     return isNaN(num) ? Infinity : num;
-  }, [maxCookingTime]);
+  }, [maxCookingTime, effectiveMaxMinutes]);
 
   // Helper to parse minutes from recipe cookTime string
   const parseMinutes = (cookTime: string): number => {
@@ -301,12 +303,23 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
                 {activeCuisine ? ` (${activeCuisine})` : ""}
                 {maxMinutes < Infinity ? ` under ${maxMinutes} min` : ""}.
               </p>
-              <button
-                onClick={() => setActiveCuisine(null)}
-                className="mt-2 text-primary text-sm font-semibold hover:underline"
-              >
-                Clear filters & show all
-              </button>
+              <div className="mt-3 flex items-center justify-center gap-3">
+                <button
+                  onClick={() => setActiveCuisine(null)}
+                  className="text-primary text-sm font-semibold hover:underline"
+                >
+                  Clear filters
+                </button>
+                {maxMinutes < 30 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEffectiveMaxMinutes(30)}
+                  >
+                    ⏱️ Try with 30 min
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </div>
