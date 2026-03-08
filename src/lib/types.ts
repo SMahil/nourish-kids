@@ -32,7 +32,7 @@ export interface Recipe {
   ingredients: string[];
   steps: string[];
   tags: string[];
-  emoji: string;
+  icon: string;
   cuisine?: string;
   nutrition?: NutritionInfo;
 }

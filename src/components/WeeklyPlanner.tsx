@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import RecipeIcon from "@/components/RecipeIcon";
 import {
   DndContext,
   DragOverlay,
@@ -10,7 +11,7 @@ import {
   DragStartEvent,
   DragEndEvent,
 } from "@dnd-kit/core";
-import { ArrowLeft, Trash2, GripVertical, Loader2, ShoppingCart, Check, Copy, X } from "lucide-react";
+import { ArrowLeft, Trash2, GripVertical, Loader2, ShoppingCart, Check, Copy, X, CalendarDays, UtensilsCrossed, Sunrise, Sun, Moon } from "lucide-react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { mockRecipes } from "@/lib/mockData";
 import { Recipe } from "@/lib/types";
@@ -36,7 +37,7 @@ function DraggableRecipe({ recipe, overlay }: { recipe: Recipe; overlay?: boolea
   if (overlay) {
     return (
       <div className="flex items-center gap-2 rounded-xl gradient-warm p-3 text-primary-foreground shadow-warm max-w-[200px]">
-        <span className="text-lg">{recipe.emoji}</span>
+        <RecipeIcon icon={recipe.icon} size={18} />
         <span className="text-xs font-bold truncate">{recipe.title}</span>
       </div>
     );
@@ -52,7 +53,7 @@ function DraggableRecipe({ recipe, overlay }: { recipe: Recipe; overlay?: boolea
       }`}
     >
       <GripVertical size={14} className="text-muted-foreground shrink-0" />
-      <span className="text-base">{recipe.emoji}</span>
+      <RecipeIcon icon={recipe.icon} size={16} />
       <div className="min-w-0">
         <p className="text-xs font-bold text-foreground truncate">{recipe.title}</p>
         <p className="text-[10px] text-muted-foreground">{recipe.cookTime}</p>
@@ -90,7 +91,7 @@ function DroppableSlot({
     >
       {recipe ? (
         <div className="flex items-center gap-1.5">
-          <span className="text-base shrink-0">{recipe.emoji}</span>
+          <RecipeIcon icon={recipe.icon} size={16} className="shrink-0" />
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold text-foreground truncate leading-tight">{recipe.title}</p>
             <p className="text-[10px] text-muted-foreground">{recipe.cookTime}</p>
@@ -179,7 +180,7 @@ const WeeklyPlanner = ({ onBack }: Props) => {
       .map((item) => `${checkedItems.has(item.name) ? "✓" : "☐"} ${item.display}`)
       .join("\n");
     navigator.clipboard.writeText(text);
-    toast({ title: "📋 Copied!", description: "Shopping list copied to clipboard" });
+    toast({ title: "Copied!", description: "Shopping list copied to clipboard" });
   };
 
   const sensors = useSensors(
@@ -239,7 +240,9 @@ const WeeklyPlanner = ({ onBack }: Props) => {
             </button>
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
-                <h1 className="text-xl sm:text-2xl font-extrabold text-foreground">📅 Weekly Meal Planner</h1>
+                <h1 className="text-xl sm:text-2xl font-extrabold text-foreground flex items-center gap-2">
+                  <CalendarDays size={22} className="text-primary" /> Weekly Meal Planner
+                </h1>
                 <p className="text-xs sm:text-sm text-muted-foreground">
                   Drag recipes from the sidebar into your week
                 </p>
@@ -272,7 +275,9 @@ const WeeklyPlanner = ({ onBack }: Props) => {
               transition={{ delay: 0.1 }}
               className="w-full lg:w-52 shrink-0"
             >
-              <h3 className="mb-2 text-sm font-bold text-foreground">🍽️ Recipes</h3>
+              <h3 className="mb-2 text-sm font-bold text-foreground flex items-center gap-1.5">
+                <UtensilsCrossed size={14} className="text-primary" /> Recipes
+              </h3>
               <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible lg:max-h-[70vh] lg:overflow-y-auto lg:pr-1 pb-2 lg:pb-0">
                 {mockRecipes.map((recipe) => (
                   <div key={recipe.id} className="shrink-0 lg:shrink">
@@ -307,7 +312,7 @@ const WeeklyPlanner = ({ onBack }: Props) => {
                 {MEALS.map((meal) => (
                   <div key={meal} className="grid grid-cols-[72px_repeat(7,1fr)] gap-1.5 mb-1.5">
                     <div className="flex items-center justify-center text-[11px] font-bold text-muted-foreground gap-1">
-                      {meal === "Breakfast" ? "🌅" : meal === "Lunch" ? "☀️" : "🌙"}
+                      {meal === "Breakfast" ? <Sunrise size={13} /> : meal === "Lunch" ? <Sun size={13} /> : <Moon size={13} />}
                       <span className="hidden xl:inline">{meal}</span>
                     </div>
                     {DAYS.map((day) => {

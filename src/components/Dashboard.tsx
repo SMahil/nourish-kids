@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Upload, RefreshCw, Settings, CalendarDays, Loader2, LogOut, Filter } from "lucide-react";
+import { Sparkles, Upload, RefreshCw, Settings, CalendarDays, Loader2, LogOut, Filter, Heart, ShieldAlert, Clock, Bot, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import RecipeCard from "@/components/RecipeCard";
@@ -78,7 +78,7 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
         setRecipes(data.recipes);
         setHasAiRecipes(true);
         toast({
-          title: "✨ AI recipes ready!",
+          title: "AI recipes ready!",
           description: `${data.recipes.length} personalized meals for ${kidNames}`,
         });
       } else {
@@ -196,13 +196,13 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
           <div className="flex flex-wrap gap-1.5">
             {kids.flatMap((kid) => [
               ...kid.favorites.map((f) => (
-                <span key={`${kid.name}-fav-${f}`} className="rounded-full bg-accent/20 px-3 py-1 text-xs font-medium text-accent">
-                  ❤️ {f}
-                </span>
+                  <span key={`${kid.name}-fav-${f}`} className="inline-flex items-center gap-1 rounded-full bg-accent/20 px-3 py-1 text-xs font-medium text-accent">
+                    <Heart size={10} /> {f}
+                  </span>
               )),
               ...kid.allergies.map((a) => (
-                <span key={`${kid.name}-allergy-${a}`} className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">
-                  🚫 {a}
+                <span key={`${kid.name}-allergy-${a}`} className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">
+                  <ShieldAlert size={10} /> {a}
                 </span>
               )),
             ])}
@@ -212,8 +212,9 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
         {/* Recipe list */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-foreground">
-              {hasAiRecipes ? "🤖 AI-Personalized for your kids" : "✨ Recommended for today"}
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+              {hasAiRecipes ? <Bot size={18} className="text-primary" /> : <Sparkles size={18} className="text-primary" />}
+              {hasAiRecipes ? "AI-Personalized for your kids" : "Recommended for today"}
             </h2>
             {hasAiRecipes && (
               <Button
@@ -235,8 +236,8 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
 
             {/* Time filter indicator */}
             {maxMinutes < Infinity && (
-              <span className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
-                ⏱️ ≤ {maxMinutes} min
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
+                <Timer size={12} /> &le; {maxMinutes} min
               </span>
             )}
 
@@ -316,7 +317,7 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
                     size="sm"
                     onClick={() => setEffectiveMaxMinutes(30)}
                   >
-                    ⏱️ Try with 30 min
+                    <Timer size={12} className="mr-1" /> Try with 30 min
                   </Button>
                 )}
               </div>

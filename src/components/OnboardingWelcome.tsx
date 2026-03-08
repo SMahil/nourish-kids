@@ -27,7 +27,7 @@ const OnboardingWelcome = ({ onStart }: Props) => {
           NourishKids
         </h1>
         <p className="mb-2 text-lg font-semibold text-primary">
-          Meal magic for busy parents ✨
+          Meal magic for busy parents
         </p>
         <p className="mb-8 text-muted-foreground leading-relaxed">
           No more mealtime stress. Tell us what your kids love (and hate), and we'll suggest quick, 

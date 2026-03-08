@@ -115,7 +115,7 @@ const OnboardingKidProfile = ({ onComplete, onBack }: Props) => {
       ),
     },
     {
-      title: "Any allergies? 🚫",
+      title: "Any allergies?",
       content: (
         <div className="flex flex-wrap gap-2">
           {commonAllergies.map((a) => (

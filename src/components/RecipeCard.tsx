@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, Users, ThumbsUp, ChevronDown, ChevronUp, Flame, Beef, Wheat, Droplets, Leaf } from "lucide-react";
+import { Clock, Users, ThumbsUp, ChevronDown, ChevronUp, Flame, Beef, Wheat, Droplets, Leaf, Globe } from "lucide-react";
 import { Recipe } from "@/lib/types";
+import RecipeIcon from "@/components/RecipeIcon";
 
 interface Props {
   recipe: Recipe;
@@ -42,7 +43,9 @@ const RecipeCard = ({ recipe, index }: Props) => {
       <div className="p-5">
         <div className="mb-3 flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-3xl">{recipe.emoji}</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+              <RecipeIcon icon={recipe.icon} size={22} />
+            </div>
             <div>
               <h3 className="text-lg font-bold text-foreground">{recipe.title}</h3>
               <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
@@ -54,7 +57,7 @@ const RecipeCard = ({ recipe, index }: Props) => {
                 </span>
                 {recipe.cuisine && (
                   <span className="flex items-center gap-1">
-                    🌍 {recipe.cuisine}
+                    <Globe size={14} /> {recipe.cuisine}
                   </span>
                 )}
               </div>
