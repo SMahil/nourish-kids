@@ -201,8 +201,8 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
                   </span>
               )),
               ...kid.allergies.map((a) => (
-                <span key={`${kid.name}-allergy-${a}`} className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">
-                  🚫 {a}
+                <span key={`${kid.name}-allergy-${a}`} className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">
+                  <ShieldAlert size={10} /> {a}
                 </span>
               )),
             ])}
