@@ -46,10 +46,11 @@ ${cuisineNote}
 ${timeNote}
 Include estimated nutrition info per serving (calories, protein, carbs, fat, fiber in grams).
 Tag each recipe with its cuisine type.
+For each recipe, include a "matchReasons" array of 2-3 short strings explaining WHY this recipe is a good match for the specific kids. Reference their names and preferences. Examples: "Uses chicken — Maya's favorite!", "Nut-free — safe for Liam", "No broccoli — respects Ava's taste".
 Return recipes as a JSON array using the exact schema — no markdown, no extra text.`;
 
     const userPrompt = `Kid profiles:\n${kidDescriptions}\n\nFind 6 REAL recipes from popular cooking sites (e.g. AllRecipes, BBC Good Food, Tasty, etc.) that match all filters.${timeLimit < 999 ? ` REMEMBER: Every recipe must be ${timeLimit} minutes or less. cookTime must be "X min" where X ≤ ${timeLimit}.` : ""} Return a JSON array of recipe objects with these fields:
-{ "id": string, "title": string, "cookTime": string, "difficulty": "Easy"|"Medium", "servings": number, "kidApproval": number (70-99), "ingredients": string[], "steps": string[], "tags": string[], "icon": string (one of: "utensils-crossed","pizza","cake","salad","soup","cookie","sandwich","coffee","ice-cream","egg","fish","beef","apple","cherry","grape","carrot","wheat","cup","milk","flame","leafy","bean","circle","croissant","glass","drumstick","popcorn"), "cuisine": string, "nutrition": { "calories": number, "protein": number, "carbs": number, "fat": number, "fiber": number } }`;
+{ "id": string, "title": string, "cookTime": string, "difficulty": "Easy"|"Medium", "servings": number, "kidApproval": number (70-99), "ingredients": string[], "steps": string[], "tags": string[], "icon": string (one of: "utensils-crossed","pizza","cake","salad","soup","cookie","sandwich","coffee","ice-cream","egg","fish","beef","apple","cherry","grape","carrot","wheat","cup","milk","flame","leafy","bean","circle","croissant","glass","drumstick","popcorn"), "cuisine": string, "matchReasons": string[] (2-3 personalized reasons referencing kid names), "nutrition": { "calories": number, "protein": number, "carbs": number, "fat": number, "fiber": number } }`;
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -90,6 +91,7 @@ Return recipes as a JSON array using the exact schema — no markdown, no extra 
                           tags: { type: "array", items: { type: "string" } },
                           icon: { type: "string", description: "Lucide icon name from allowed set" },
                           cuisine: { type: "string" },
+                          matchReasons: { type: "array", items: { type: "string" }, description: "2-3 personalized reasons why this recipe suits the kids" },
                           nutrition: {
                             type: "object",
                             properties: {
@@ -102,7 +104,7 @@ Return recipes as a JSON array using the exact schema — no markdown, no extra 
                             required: ["calories", "protein", "carbs", "fat", "fiber"],
                           },
                         },
-                        required: ["id", "title", "cookTime", "difficulty", "servings", "kidApproval", "ingredients", "steps", "tags", "icon", "cuisine", "nutrition"],
+                        required: ["id", "title", "cookTime", "difficulty", "servings", "kidApproval", "ingredients", "steps", "tags", "icon", "cuisine", "matchReasons", "nutrition"],
                         additionalProperties: false,
                       },
                     },

@@ -295,7 +295,7 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
             </div>
           ) : filteredRecipes.length > 0 ? (
             filteredRecipes.map((recipe, i) => (
-              <RecipeCard key={recipe.id} recipe={recipe} index={i} />
+              <RecipeCard key={recipe.id} recipe={recipe} index={i} kids={kids} />
             ))
           ) : (
             <div className="rounded-2xl border border-dashed border-border p-8 text-center">

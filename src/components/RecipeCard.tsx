@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Clock, Users, ThumbsUp, ChevronDown, ChevronUp, Flame, Beef, Wheat, Droplets, Leaf, Globe } from "lucide-react";
-import { Recipe } from "@/lib/types";
+import { Clock, Users, ThumbsUp, ChevronDown, ChevronUp, Flame, Beef, Wheat, Droplets, Leaf, Globe, Heart, ShieldCheck, ThumbsDown, Sparkles } from "lucide-react";
+import { Recipe, KidProfile } from "@/lib/types";
 import RecipeIcon from "@/components/RecipeIcon";
 
 interface Props {
   recipe: Recipe;
   index: number;
+  kids?: KidProfile[];
 }
 
 const NutritionBar = ({ label, value, max, color, icon }: { label: string; value: number; max: number; color: string; icon: React.ReactNode }) => {
@@ -30,8 +31,72 @@ const NutritionBar = ({ label, value, max, color, icon }: { label: string; value
   );
 };
 
-const RecipeCard = ({ recipe, index }: Props) => {
+function computeMatchReasons(recipe: Recipe, kids: KidProfile[]): { text: string; type: "favorite" | "safe" | "respects" }[] {
+  const reasons: { text: string; type: "favorite" | "safe" | "respects" }[] = [];
+  const ingredientsLower = recipe.ingredients.map((i) => i.toLowerCase());
+  const tagsLower = recipe.tags.map((t) => t.toLowerCase());
+  const allText = [...ingredientsLower, ...tagsLower];
+
+  for (const kid of kids) {
+    const name = kid.name || "Your child";
+
+    // Favorites matched
+    for (const fav of kid.favorites) {
+      if (allText.some((t) => t.includes(fav.toLowerCase()))) {
+        reasons.push({ text: `Uses ${fav} — ${name}'s favorite!`, type: "favorite" });
+      }
+    }
+
+    // Allergies avoided
+    for (const allergy of kid.allergies) {
+      if (!allText.some((t) => t.includes(allergy.toLowerCase()))) {
+        reasons.push({ text: `${allergy}-free — safe for ${name}`, type: "safe" });
+      }
+    }
+
+    // Dislikes avoided
+    for (const dislike of kid.dislikes) {
+      if (!allText.some((t) => t.includes(dislike.toLowerCase()))) {
+        reasons.push({ text: `No ${dislike} — respects ${name}'s taste`, type: "respects" });
+      }
+    }
+  }
+
+  // Deduplicate and limit
+  const seen = new Set<string>();
+  return reasons.filter((r) => {
+    if (seen.has(r.text)) return false;
+    seen.add(r.text);
+    return true;
+  }).slice(0, 4);
+}
+
+const reasonStyles = {
+  favorite: "bg-accent/20 text-accent-foreground",
+  safe: "bg-sage/20 text-foreground",
+  respects: "bg-peach text-foreground",
+};
+
+const reasonIcons = {
+  favorite: <Heart size={10} className="shrink-0" />,
+  safe: <ShieldCheck size={10} className="shrink-0" />,
+  respects: <ThumbsDown size={10} className="shrink-0" />,
+};
+
+const RecipeCard = ({ recipe, index, kids }: Props) => {
   const [expanded, setExpanded] = useState(false);
+
+  const matchReasons = useMemo(() => {
+    // Prefer AI-generated match reasons
+    if (recipe.matchReasons && recipe.matchReasons.length > 0) {
+      return recipe.matchReasons.map((text) => ({ text, type: "favorite" as const }));
+    }
+    // Compute locally from kid profiles
+    if (kids && kids.length > 0) {
+      return computeMatchReasons(recipe, kids);
+    }
+    return [];
+  }, [recipe, kids]);
 
   return (
     <motion.div
@@ -63,11 +128,28 @@ const RecipeCard = ({ recipe, index }: Props) => {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-1 rounded-full bg-accent/20 px-3 py-1 text-sm font-semibold text-accent">
-            <ThumbsUp size={14} />
-            {recipe.kidApproval}%
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex items-center gap-1 rounded-full bg-accent/20 px-3 py-1 text-sm font-semibold text-accent-foreground" title="How well this recipe matches your kids' preferences">
+              <Sparkles size={14} />
+              <span>{recipe.kidApproval}% match</span>
+            </div>
           </div>
         </div>
+
+        {/* Match reasons pills */}
+        {matchReasons.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            {matchReasons.map((reason, i) => (
+              <span
+                key={i}
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${reasonStyles[reason.type]}`}
+              >
+                {reasonIcons[reason.type]}
+                {reason.text}
+              </span>
+            ))}
+          </div>
+        )}
 
         <div className="mb-3 flex flex-wrap gap-1.5">
           {recipe.tags.map((tag) => (

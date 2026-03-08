@@ -11,12 +11,13 @@ import {
   DragStartEvent,
   DragEndEvent,
 } from "@dnd-kit/core";
-import { ArrowLeft, Trash2, GripVertical, Loader2, ShoppingCart, Check, Copy, X, CalendarDays, UtensilsCrossed, Sunrise, Sun, Moon } from "lucide-react";
+import { ArrowLeft, Trash2, GripVertical, Loader2, ShoppingCart, Check, Copy, X, CalendarDays, UtensilsCrossed, Sunrise, Sun, Moon, BarChart3, Flame, Beef, Wheat, Droplets, Leaf, Apple, AlertTriangle } from "lucide-react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { mockRecipes } from "@/lib/mockData";
-import { Recipe } from "@/lib/types";
+import { Recipe, NutritionInfo } from "@/lib/types";
 import { useMealPlans } from "@/hooks/useMealPlans";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 
 interface Props {
@@ -145,10 +146,135 @@ function DayCard({
   );
 }
 
+// Recommended daily values for children (ages 4-13 average)
+const DAILY_TARGETS = { calories: 1800, protein: 40, carbs: 250, fat: 60, fiber: 20 };
+
+function NutritionSnapshot({ planned }: { planned: Record<string, Recipe | undefined> }) {
+  const stats = useMemo(() => {
+    const recipes = Object.values(planned).filter(Boolean) as Recipe[];
+    const withNutrition = recipes.filter((r) => r.nutrition);
+    if (withNutrition.length === 0) return null;
+
+    const totals = withNutrition.reduce(
+      (acc, r) => ({
+        calories: acc.calories + (r.nutrition!.calories || 0),
+        protein: acc.protein + (r.nutrition!.protein || 0),
+        carbs: acc.carbs + (r.nutrition!.carbs || 0),
+        fat: acc.fat + (r.nutrition!.fat || 0),
+        fiber: acc.fiber + (r.nutrition!.fiber || 0),
+      }),
+      { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 }
+    );
+
+    // Count days that have at least one meal
+    const daysWithMeals = new Set(
+      Object.entries(planned)
+        .filter(([, r]) => r)
+        .map(([key]) => key.split("-")[0])
+    ).size;
+    const divisor = Math.max(daysWithMeals, 1);
+
+    const dailyAvg = {
+      calories: Math.round(totals.calories / divisor),
+      protein: Math.round(totals.protein / divisor),
+      carbs: Math.round(totals.carbs / divisor),
+      fat: Math.round(totals.fat / divisor),
+      fiber: Math.round(totals.fiber / divisor),
+    };
+
+    // Variety score: unique ingredients
+    const uniqueIngredients = new Set<string>();
+    recipes.forEach((r) => r.ingredients.forEach((ing) => uniqueIngredients.add(ing.toLowerCase().trim())));
+
+    // Gaps / nudges
+    const nudges: string[] = [];
+    if (dailyAvg.fiber < DAILY_TARGETS.fiber * 0.5) nudges.push("Consider adding high-fiber options like beans, lentils, or whole grains.");
+    if (dailyAvg.protein < DAILY_TARGETS.protein * 0.5) nudges.push("Protein looks low — try adding eggs, chicken, or yogurt to some meals.");
+    if (uniqueIngredients.size < 15 && recipes.length >= 5) nudges.push("Try more variety — different veggies and proteins each day help nutrition.");
+
+    return { dailyAvg, uniqueIngredients: uniqueIngredients.size, mealCount: withNutrition.length, nudges };
+  }, [planned]);
+
+  if (!stats) {
+    return (
+      <div className="rounded-2xl bg-card border border-border shadow-soft p-5 text-center">
+        <p className="text-sm text-muted-foreground">Add meals with nutrition data to see your weekly snapshot.</p>
+      </div>
+    );
+  }
+
+  const bars = [
+    { label: "Calories", value: stats.dailyAvg.calories, target: DAILY_TARGETS.calories, unit: "cal", icon: <Flame size={14} />, color: "gradient-warm" },
+    { label: "Protein", value: stats.dailyAvg.protein, target: DAILY_TARGETS.protein, unit: "g", icon: <Beef size={14} />, color: "bg-primary" },
+    { label: "Carbs", value: stats.dailyAvg.carbs, target: DAILY_TARGETS.carbs, unit: "g", icon: <Wheat size={14} />, color: "bg-primary/60" },
+    { label: "Fat", value: stats.dailyAvg.fat, target: DAILY_TARGETS.fat, unit: "g", icon: <Droplets size={14} />, color: "bg-accent-foreground/50" },
+    { label: "Fiber", value: stats.dailyAvg.fiber, target: DAILY_TARGETS.fiber, unit: "g", icon: <Leaf size={14} />, color: "bg-sage" },
+  ];
+
+  return (
+    <div className="rounded-2xl bg-card border border-border shadow-soft p-5 space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <BarChart3 size={18} className="text-primary" />
+          <h3 className="text-lg font-bold text-foreground">Nutrition Snapshot</h3>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="rounded-full gradient-sage px-3 py-1.5 text-xs font-semibold text-foreground flex items-center gap-1">
+            <Apple size={12} /> {stats.uniqueIngredients} unique ingredients
+          </div>
+          <span className="text-xs text-muted-foreground">{stats.mealCount} meals tracked</span>
+        </div>
+      </div>
+
+      <p className="text-xs text-muted-foreground">Daily averages based on your planned meals vs. recommended daily intake for children.</p>
+
+      <div className="space-y-3">
+        {bars.map((bar) => {
+          const pct = Math.min(Math.round((bar.value / bar.target) * 100), 150);
+          const isLow = pct < 40;
+          const isGood = pct >= 60 && pct <= 120;
+          return (
+            <div key={bar.label} className="space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-1.5 font-semibold text-foreground">
+                  {bar.icon} {bar.label}
+                </span>
+                <span className={`font-bold ${isLow ? "text-destructive" : isGood ? "text-accent-foreground" : "text-foreground"}`}>
+                  {bar.value}{bar.unit} / {bar.target}{bar.unit}
+                </span>
+              </div>
+              <div className="h-2.5 rounded-full bg-muted/50 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(pct, 100)}%` }}
+                  transition={{ duration: 0.8 }}
+                  className={`h-full rounded-full ${isLow ? "bg-destructive/70" : bar.color}`}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {stats.nudges.length > 0 && (
+        <div className="space-y-2">
+          {stats.nudges.map((nudge, i) => (
+            <div key={i} className="flex items-start gap-2 rounded-xl gradient-peach px-3 py-2.5">
+              <AlertTriangle size={14} className="text-primary shrink-0 mt-0.5" />
+              <p className="text-xs font-medium text-foreground">{nudge}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const WeeklyPlanner = ({ onBack }: Props) => {
   const { planned, loading, setMeal, removeMeal } = useMealPlans();
   const [activeRecipe, setActiveRecipe] = useState<Recipe | null>(null);
   const [showShoppingList, setShowShoppingList] = useState(false);
+  const [showNutrition, setShowNutrition] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
@@ -252,15 +378,26 @@ const WeeklyPlanner = ({ onBack }: Props) => {
                   {filledCount}/{totalSlots} meals
                 </div>
                 {filledCount > 0 && (
-                  <Button
-                    onClick={() => setShowShoppingList(!showShoppingList)}
-                    className={`rounded-full gap-2 text-xs ${showShoppingList ? "gradient-warm text-primary-foreground shadow-warm border-0" : ""}`}
-                    variant={showShoppingList ? "default" : "outline"}
-                    size="sm"
-                  >
-                    <ShoppingCart size={14} />
-                    Shopping ({shoppingList.length})
-                  </Button>
+                  <>
+                    <Button
+                      onClick={() => { setShowNutrition(!showNutrition); if (!showNutrition) setShowShoppingList(false); }}
+                      className={`rounded-full gap-2 text-xs ${showNutrition ? "gradient-warm text-primary-foreground shadow-warm border-0" : ""}`}
+                      variant={showNutrition ? "default" : "outline"}
+                      size="sm"
+                    >
+                      <BarChart3 size={14} />
+                      Nutrition
+                    </Button>
+                    <Button
+                      onClick={() => { setShowShoppingList(!showShoppingList); if (!showShoppingList) setShowNutrition(false); }}
+                      className={`rounded-full gap-2 text-xs ${showShoppingList ? "gradient-warm text-primary-foreground shadow-warm border-0" : ""}`}
+                      variant={showShoppingList ? "default" : "outline"}
+                      size="sm"
+                    >
+                      <ShoppingCart size={14} />
+                      Shopping ({shoppingList.length})
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
@@ -339,6 +476,20 @@ const WeeklyPlanner = ({ onBack }: Props) => {
               ))}
             </div>
           </div>
+
+          {/* Nutrition Snapshot Panel */}
+          <AnimatePresence>
+            {showNutrition && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: "auto" }}
+                exit={{ opacity: 0, y: 20, height: 0 }}
+                className="mt-6 overflow-hidden"
+              >
+                <NutritionSnapshot planned={planned} />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Shopping List Panel — outside the flex container */}
           <AnimatePresence>
