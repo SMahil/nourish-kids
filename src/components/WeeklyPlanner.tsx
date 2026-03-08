@@ -211,8 +211,21 @@ const WeeklyPlanner = ({ onBack }: Props) => {
                   Drag recipes from the sidebar into your week
                 </p>
               </div>
-              <div className="rounded-full gradient-peach px-4 py-2 text-sm font-semibold text-foreground">
-                {filledCount}/{totalSlots} meals planned
+              <div className="flex items-center gap-3">
+                <div className="rounded-full gradient-peach px-4 py-2 text-sm font-semibold text-foreground">
+                  {filledCount}/{totalSlots} meals planned
+                </div>
+                {filledCount > 0 && (
+                  <Button
+                    onClick={() => setShowShoppingList(!showShoppingList)}
+                    className={`rounded-full gap-2 ${showShoppingList ? "gradient-warm text-primary-foreground shadow-warm border-0" : ""}`}
+                    variant={showShoppingList ? "default" : "outline"}
+                    size="sm"
+                  >
+                    <ShoppingCart size={16} />
+                    Shopping List ({shoppingList.length})
+                  </Button>
+                )}
               </div>
             </div>
           </motion.div>
