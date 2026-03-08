@@ -11,12 +11,13 @@ import {
   DragStartEvent,
   DragEndEvent,
 } from "@dnd-kit/core";
-import { ArrowLeft, Trash2, GripVertical, Loader2, ShoppingCart, Check, Copy, X, CalendarDays, UtensilsCrossed, Sunrise, Sun, Moon } from "lucide-react";
+import { ArrowLeft, Trash2, GripVertical, Loader2, ShoppingCart, Check, Copy, X, CalendarDays, UtensilsCrossed, Sunrise, Sun, Moon, BarChart3, Flame, Beef, Wheat, Droplets, Leaf, Apple, AlertTriangle } from "lucide-react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { mockRecipes } from "@/lib/mockData";
-import { Recipe } from "@/lib/types";
+import { Recipe, NutritionInfo } from "@/lib/types";
 import { useMealPlans } from "@/hooks/useMealPlans";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 
 interface Props {
