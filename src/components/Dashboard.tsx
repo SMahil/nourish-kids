@@ -25,11 +25,13 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasAiRecipes, setHasAiRecipes] = useState(false);
+  const [showFavorites, setShowFavorites] = useState(false);
   const [activeCuisine, setActiveCuisine] = useState<string | null>(
     cuisinePreferences?.length === 1 ? cuisinePreferences[0] : null
   );
   const [effectiveMaxMinutes, setEffectiveMaxMinutes] = useState<number | null>(null);
   const { toast } = useToast();
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
 
   // Get unique cuisines from current recipes
   const availableCuisines = useMemo(() => {
