@@ -312,7 +312,7 @@ const WeeklyPlanner = ({ onBack }: Props) => {
                 {MEALS.map((meal) => (
                   <div key={meal} className="grid grid-cols-[72px_repeat(7,1fr)] gap-1.5 mb-1.5">
                     <div className="flex items-center justify-center text-[11px] font-bold text-muted-foreground gap-1">
-                      {meal === "Breakfast" ? "🌅" : meal === "Lunch" ? "☀️" : "🌙"}
+                      {meal === "Breakfast" ? <Sunrise size={13} /> : meal === "Lunch" ? <Sun size={13} /> : <Moon size={13} />}
                       <span className="hidden xl:inline">{meal}</span>
                     </div>
                     {DAYS.map((day) => {
