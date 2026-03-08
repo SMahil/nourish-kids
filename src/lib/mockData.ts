@@ -337,8 +337,6 @@ export const mockRecipes: Recipe[] = [
     cuisine: "Indian",
     nutrition: { calories: 230, protein: 9, carbs: 38, fat: 5, fiber: 4 },
   },
-];
-
   {
     id: "25",
     title: "Poha (Flattened Rice)",
@@ -423,6 +421,7 @@ export const mockRecipes: Recipe[] = [
     cuisine: "Indian",
     nutrition: { calories: 310, protein: 8, carbs: 42, fat: 12, fiber: 2 },
   },
+];
 
 export const commonAllergies = [
   "Dairy", "Eggs", "Peanuts", "Tree Nuts", "Wheat/Gluten", "Soy", "Fish", "Shellfish",
