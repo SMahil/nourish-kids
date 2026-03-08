@@ -111,6 +111,24 @@ const Auth = () => {
           </Button>
         </form>
 
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-border" />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-background px-3 text-muted-foreground">or</span>
+          </div>
+        </div>
+
+        <Button
+          variant="outline"
+          onClick={() => navigate("/?guest=true")}
+          className="w-full rounded-full"
+        >
+          <UserRound size={18} className="mr-2" />
+          Continue as Guest
+        </Button>
+
         <p className="mt-6 text-center text-sm text-muted-foreground">
           {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
           <button
