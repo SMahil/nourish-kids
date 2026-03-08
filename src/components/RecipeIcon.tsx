@@ -25,7 +25,7 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   grape: Grape,
   carrot: Carrot,
   wheat: Wheat,
-  cup:Soda Cup,
+  cup: CupSoda,
   milk: Milk,
   flame: Flame,
   leafy: LeafyGreen,
