@@ -25,13 +25,18 @@ serve(async (req) => {
       .join("\n");
 
     const cuisineNote = cuisinePreferences?.length
-      ? `Preferred cuisines: ${cuisinePreferences.join(", ")}. Prioritize these but include variety.`
+      ? `STRICT cuisine filter: ONLY return recipes from these cuisines: ${cuisinePreferences.join(", ")}. Do NOT include any other cuisines.`
       : "";
 
-    const systemPrompt = `You are a kid-friendly recipe expert. Generate 5 creative, nutritious recipes that children will love.
+    const timeNote = maxCookingTime && maxCookingTime !== "45+ min"
+      ? `STRICT time filter: ALL recipes must take ${maxCookingTime} or less to prepare and cook. Do NOT exceed this time.`
+      : "";
+
+    const systemPrompt = `You are a kid-friendly recipe expert who finds REAL recipes from popular cooking websites and blogs.
+Your job is to suggest 6 real, well-known recipes that actually exist online — not invented ones.
 Each recipe must avoid the listed allergies, respect dislikes, and incorporate favorites when possible.
 ${cuisineNote}
-Focus on quick, practical meals (under 30 min) that busy parents can make.
+${timeNote}
 Include estimated nutrition info per serving (calories, protein, carbs, fat, fiber in grams).
 Tag each recipe with its cuisine type.
 Return recipes as a JSON array using the exact schema — no markdown, no extra text.`;
