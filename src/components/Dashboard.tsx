@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Upload, RefreshCw, Settings, CalendarDays, Loader2, LogOut } from "lucide-react";
+import { Sparkles, Upload, RefreshCw, Settings, CalendarDays, Loader2, LogOut, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import RecipeCard from "@/components/RecipeCard";
@@ -23,7 +23,21 @@ const Dashboard = ({ kids, cuisinePreferences, onGoToGrocery, onGoToPlanner, onR
   const [recipes, setRecipes] = useState<Recipe[]>(mockRecipes);
   const [isLoading, setIsLoading] = useState(false);
   const [hasAiRecipes, setHasAiRecipes] = useState(false);
+  const [activeCuisine, setActiveCuisine] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Get unique cuisines from current recipes
+  const availableCuisines = useMemo(() => {
+    const cuisines = new Set<string>();
+    recipes.forEach((r) => { if (r.cuisine) cuisines.add(r.cuisine); });
+    return Array.from(cuisines).sort();
+  }, [recipes]);
+
+  // Filtered recipes
+  const filteredRecipes = useMemo(() => {
+    if (!activeCuisine) return recipes;
+    return recipes.filter((r) => r.cuisine === activeCuisine);
+  }, [recipes, activeCuisine]);
 
   const fetchAiSuggestions = async () => {
     setIsLoading(true);
@@ -189,6 +203,39 @@ const Dashboard = ({ kids, cuisinePreferences, onGoToGrocery, onGoToPlanner, onR
             )}
           </div>
 
+          {/* Cuisine filter */}
+          {availableCuisines.length > 1 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <Filter size={14} className="text-muted-foreground shrink-0" />
+              <button
+                onClick={() => setActiveCuisine(null)}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
+                  !activeCuisine
+                    ? "gradient-warm text-primary-foreground shadow-warm"
+                    : "bg-muted text-muted-foreground hover:bg-border"
+                }`}
+              >
+                All ({recipes.length})
+              </button>
+              {availableCuisines.map((c) => {
+                const count = recipes.filter((r) => r.cuisine === c).length;
+                return (
+                  <button
+                    key={c}
+                    onClick={() => setActiveCuisine(activeCuisine === c ? null : c)}
+                    className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
+                      activeCuisine === c
+                        ? "gradient-warm text-primary-foreground shadow-warm"
+                        : "bg-muted text-muted-foreground hover:bg-border"
+                    }`}
+                  >
+                    {c} ({count})
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {isLoading ? (
             <div className="space-y-4">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -208,10 +255,17 @@ const Dashboard = ({ kids, cuisinePreferences, onGoToGrocery, onGoToPlanner, onR
                 </div>
               ))}
             </div>
-          ) : (
-            recipes.map((recipe, i) => (
+          ) : filteredRecipes.length > 0 ? (
+            filteredRecipes.map((recipe, i) => (
               <RecipeCard key={recipe.id} recipe={recipe} index={i} />
             ))
+          ) : (
+            <div className="rounded-2xl border border-dashed border-border p-8 text-center">
+              <p className="text-muted-foreground text-sm">No recipes match this cuisine filter.</p>
+              <button onClick={() => setActiveCuisine(null)} className="mt-2 text-primary text-sm font-semibold hover:underline">
+                Show all recipes
+              </button>
+            </div>
           )}
         </div>
       </div>
