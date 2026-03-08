@@ -14,6 +14,7 @@ interface Props {
   onGoToGrocery: () => void;
   onGoToPlanner: () => void;
   onReset: () => void;
+  onSignOut?: () => void;
 }
 
 const Dashboard = ({ kids, onGoToGrocery, onGoToPlanner, onReset }: Props) => {
