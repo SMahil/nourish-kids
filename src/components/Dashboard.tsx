@@ -36,11 +36,27 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
     return Array.from(cuisines).sort();
   }, [recipes]);
 
-  // Filtered recipes
+  // Parse max minutes from cooking time preference
+  const maxMinutes = useMemo(() => {
+    if (!maxCookingTime || maxCookingTime === "45+ min") return Infinity;
+    const num = parseInt(maxCookingTime);
+    return isNaN(num) ? Infinity : num;
+  }, [maxCookingTime]);
+
+  // Helper to parse minutes from recipe cookTime string
+  const parseMinutes = (cookTime: string): number => {
+    const match = cookTime.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 999;
+  };
+
+  // Filtered recipes by cuisine AND cooking time
   const filteredRecipes = useMemo(() => {
-    if (!activeCuisine) return recipes;
-    return recipes.filter((r) => r.cuisine === activeCuisine);
-  }, [recipes, activeCuisine]);
+    return recipes.filter((r) => {
+      const cuisineMatch = !activeCuisine || r.cuisine === activeCuisine;
+      const timeMatch = parseMinutes(r.cookTime) <= maxMinutes;
+      return cuisineMatch && timeMatch;
+    });
+  }, [recipes, activeCuisine, maxMinutes]);
 
   const fetchAiSuggestions = async () => {
     setIsLoading(true);
