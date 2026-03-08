@@ -78,7 +78,7 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
         setRecipes(data.recipes);
         setHasAiRecipes(true);
         toast({
-          title: "✨ AI recipes ready!",
+          title: "AI recipes ready!",
           description: `${data.recipes.length} personalized meals for ${kidNames}`,
         });
       } else {

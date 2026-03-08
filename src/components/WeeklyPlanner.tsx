@@ -180,7 +180,7 @@ const WeeklyPlanner = ({ onBack }: Props) => {
       .map((item) => `${checkedItems.has(item.name) ? "✓" : "☐"} ${item.display}`)
       .join("\n");
     navigator.clipboard.writeText(text);
-    toast({ title: "📋 Copied!", description: "Shopping list copied to clipboard" });
+    toast({ title: "Copied!", description: "Shopping list copied to clipboard" });
   };
 
   const sensors = useSensors(
