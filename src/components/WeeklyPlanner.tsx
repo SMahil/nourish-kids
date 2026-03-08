@@ -91,7 +91,7 @@ function DroppableSlot({
     >
       {recipe ? (
         <div className="flex items-center gap-1.5">
-          <span className="text-base shrink-0">{recipe.emoji}</span>
+          <RecipeIcon icon={recipe.icon} size={16} className="shrink-0" />
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold text-foreground truncate leading-tight">{recipe.title}</p>
             <p className="text-[10px] text-muted-foreground">{recipe.cookTime}</p>
