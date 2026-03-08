@@ -37,7 +37,7 @@ const Index = () => {
     }
   }, [kidsLoading, hasKids, kids, screen, user]);
 
-  if (authLoading || kidsLoading) {
+  if (authLoading || (!isGuest && kidsLoading)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="animate-spin text-primary" size={32} />
@@ -45,7 +45,7 @@ const Index = () => {
     );
   }
 
-  if (!user) return null;
+  if (!user && !isGuest) return null;
 
   return (
     <div className="min-h-screen bg-background">
