@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useKidProfiles } from "@/hooks/useKidProfiles";
+import { supabase } from "@/integrations/supabase/client";
 import OnboardingWelcome from "@/components/OnboardingWelcome";
 import OnboardingKidProfile from "@/components/OnboardingKidProfile";
 import OnboardingPreferences from "@/components/OnboardingPreferences";
@@ -23,6 +24,7 @@ const Index = () => {
   const [localKids, setLocalKids] = useState<KidProfile[]>([]);
   const [cuisinePreferences, setCuisinePreferences] = useState<string[]>([]);
   const [maxCookingTime, setMaxCookingTime] = useState<string>("45+ min");
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
 
   // Redirect to auth if not logged in and not guest
   useEffect(() => {
@@ -31,20 +33,46 @@ const Index = () => {
     }
   }, [authLoading, user, isGuest, navigate]);
 
-  // Skip onboarding if authenticated user already has kid profiles
+  // Load saved preferences for returning users
   useEffect(() => {
-    if (!kidsLoading && hasKids && screen === "welcome" && user) {
+    const loadPrefs = async () => {
+      if (!user) { setPrefsLoaded(true); return; }
+      const { data } = await supabase
+        .from("profiles")
+        .select("cuisine_preferences, max_cooking_time")
+        .eq("id", user.id)
+        .single();
+      if (data) {
+        if (data.cuisine_preferences?.length) setCuisinePreferences(data.cuisine_preferences);
+        if (data.max_cooking_time) setMaxCookingTime(data.max_cooking_time);
+      }
+      setPrefsLoaded(true);
+    };
+    if (!authLoading) loadPrefs();
+  }, [user, authLoading]);
+
+  // Skip onboarding if authenticated user already has kid profiles and prefs loaded
+  useEffect(() => {
+    if (!kidsLoading && hasKids && screen === "welcome" && user && prefsLoaded) {
       setLocalKids(kids);
       setScreen("dashboard");
     }
-  }, [kidsLoading, hasKids, kids, screen, user]);
+  }, [kidsLoading, hasKids, kids, screen, user, prefsLoaded]);
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth", { replace: true });
   };
 
-  if (authLoading || (!isGuest && kidsLoading)) {
+  const savePreferences = async (cuisines: string[], cookingTime: string) => {
+    if (!user) return;
+    await supabase
+      .from("profiles")
+      .update({ cuisine_preferences: cuisines, max_cooking_time: cookingTime })
+      .eq("id", user.id);
+  };
+
+  if (authLoading || (!isGuest && (kidsLoading || !prefsLoaded))) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="animate-spin text-primary" size={32} />
@@ -74,6 +102,7 @@ const Index = () => {
           onComplete={(prefs) => {
             setCuisinePreferences(prefs.cuisines);
             setMaxCookingTime(prefs.cookingTime);
+            savePreferences(prefs.cuisines, prefs.cookingTime);
             setScreen("dashboard");
           }}
           onBack={() => setScreen("kids")}
