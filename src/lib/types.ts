@@ -34,5 +34,6 @@ export interface Recipe {
   tags: string[];
   icon: string;
   cuisine?: string;
+  matchReasons?: string[];
   nutrition?: NutritionInfo;
 }
