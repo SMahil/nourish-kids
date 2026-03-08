@@ -65,7 +65,10 @@ const Index = () => {
       )}
       {screen === "preferences" && (
         <OnboardingPreferences
-          onComplete={() => setScreen("dashboard")}
+          onComplete={(prefs) => {
+            setCuisinePreferences(prefs.cuisines);
+            setScreen("dashboard");
+          }}
           onBack={() => setScreen("kids")}
         />
       )}
