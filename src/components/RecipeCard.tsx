@@ -8,6 +8,8 @@ interface Props {
   recipe: Recipe;
   index: number;
   kids?: KidProfile[];
+  isFavorite?: boolean;
+  onToggleFavorite?: (recipe: Recipe) => void;
 }
 
 const NutritionBar = ({ label, value, max, color, icon }: { label: string; value: number; max: number; color: string; icon: React.ReactNode }) => {
@@ -83,7 +85,7 @@ const reasonIcons = {
   respects: <ThumbsDown size={10} className="shrink-0" />,
 };
 
-const RecipeCard = ({ recipe, index, kids }: Props) => {
+const RecipeCard = ({ recipe, index, kids, isFavorite, onToggleFavorite }: Props) => {
   const [expanded, setExpanded] = useState(false);
 
   const matchReasons = useMemo(() => {
@@ -128,11 +130,24 @@ const RecipeCard = ({ recipe, index, kids }: Props) => {
               </div>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-1">
+          <div className="flex flex-col items-end gap-2">
             <div className="flex items-center gap-1 rounded-full bg-accent/20 px-3 py-1 text-sm font-semibold text-accent-foreground" title="How well this recipe matches your kids' preferences">
               <Sparkles size={14} />
               <span>{recipe.kidApproval}% match</span>
             </div>
+            {onToggleFavorite && (
+              <button
+                onClick={() => onToggleFavorite(recipe)}
+                className={`rounded-full p-1.5 transition-all ${
+                  isFavorite
+                    ? "text-destructive bg-destructive/10 scale-110"
+                    : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                }`}
+                title={isFavorite ? "Remove from favorites" : "Save to favorites"}
+              >
+                <Heart size={18} className={isFavorite ? "fill-current" : ""} />
+              </button>
+            )}
           </div>
         </div>
 

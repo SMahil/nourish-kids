@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Sparkles, Upload, RefreshCw, Settings, CalendarDays, Loader2, LogOut, Filter, Heart, ShieldAlert, Clock, Bot, Timer } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, Upload, RefreshCw, Settings, CalendarDays, Loader2, LogOut, Filter, Heart, ShieldAlert, Clock, Bot, Timer, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import RecipeCard from "@/components/RecipeCard";
@@ -8,6 +8,7 @@ import { mockRecipes } from "@/lib/mockData";
 import { KidProfile, Recipe } from "@/lib/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useFavorites } from "@/hooks/useFavorites";
 
 interface Props {
   kids: KidProfile[];
@@ -24,11 +25,13 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasAiRecipes, setHasAiRecipes] = useState(false);
+  const [showFavorites, setShowFavorites] = useState(false);
   const [activeCuisine, setActiveCuisine] = useState<string | null>(
     cuisinePreferences?.length === 1 ? cuisinePreferences[0] : null
   );
   const [effectiveMaxMinutes, setEffectiveMaxMinutes] = useState<number | null>(null);
   const { toast } = useToast();
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
 
   // Get unique cuisines from current recipes
   const availableCuisines = useMemo(() => {
@@ -209,119 +212,154 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
           </div>
         </motion.div>
 
+        {/* Tabs: Recipes vs Favorites */}
+        <div className="mb-4 flex gap-2">
+          <button
+            onClick={() => setShowFavorites(false)}
+            className={`rounded-full px-4 py-2 text-sm font-bold transition-all ${
+              !showFavorites ? "gradient-warm text-primary-foreground shadow-warm" : "bg-muted text-muted-foreground hover:bg-border"
+            }`}
+          >
+            {hasAiRecipes ? "AI Recipes" : "Recipes"}
+          </button>
+          <button
+            onClick={() => setShowFavorites(true)}
+            className={`rounded-full px-4 py-2 text-sm font-bold transition-all flex items-center gap-1.5 ${
+              showFavorites ? "gradient-warm text-primary-foreground shadow-warm" : "bg-muted text-muted-foreground hover:bg-border"
+            }`}
+          >
+            <Heart size={14} className={showFavorites ? "fill-current" : ""} />
+            Favorites {favorites.length > 0 && `(${favorites.length})`}
+          </button>
+        </div>
+
         {/* Recipe list */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-              {hasAiRecipes ? <Bot size={18} className="text-primary" /> : <Sparkles size={18} className="text-primary" />}
-              {hasAiRecipes ? "AI-Personalized for your kids" : "Recommended for today"}
-            </h2>
-            {hasAiRecipes && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={fetchAiSuggestions}
-                disabled={isLoading}
-                className="text-xs"
-              >
-                <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} />
-                Refresh
-              </Button>
-            )}
-          </div>
+          {showFavorites ? (
+            /* Favorites view */
+            favorites.length > 0 ? (
+              favorites.map((recipe, i) => (
+                <RecipeCard key={recipe.id} recipe={recipe} index={i} kids={kids} isFavorite={true} onToggleFavorite={toggleFavorite} />
+              ))
+            ) : (
+              <div className="rounded-2xl border border-dashed border-border p-8 text-center">
+                <Heart size={32} className="mx-auto mb-3 text-muted-foreground" />
+                <p className="text-muted-foreground text-sm font-medium">No favorites yet</p>
+                <p className="text-muted-foreground text-xs mt-1">Tap the heart on any recipe to save it here.</p>
+              </div>
+            )
+          ) : (
+            /* Recipes view */
+            <>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                  {hasAiRecipes ? <Bot size={18} className="text-primary" /> : <Sparkles size={18} className="text-primary" />}
+                  {hasAiRecipes ? "AI-Personalized for your kids" : "Recommended for today"}
+                </h2>
+                {hasAiRecipes && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={fetchAiSuggestions}
+                    disabled={isLoading}
+                    className="text-xs"
+                  >
+                    <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} />
+                    Refresh
+                  </Button>
+                )}
+              </div>
 
-          {/* Filters */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <Filter size={14} className="text-muted-foreground shrink-0" />
-
-            {/* Time filter indicator */}
-            {maxMinutes < Infinity && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
-                <Timer size={12} /> &le; {maxMinutes} min
-              </span>
-            )}
-
-            {/* Cuisine chips */}
-            {availableCuisines.length > 1 && (
-              <>
-                <button
-                  onClick={() => setActiveCuisine(null)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
-                    !activeCuisine
-                      ? "gradient-warm text-primary-foreground shadow-warm"
-                      : "bg-muted text-muted-foreground hover:bg-border"
-                  }`}
-                >
-                  All ({recipes.length})
-                </button>
-                {availableCuisines.map((c) => {
-                  const count = recipes.filter((r) => r.cuisine === c).length;
-                  return (
+              {/* Filters */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <Filter size={14} className="text-muted-foreground shrink-0" />
+                {maxMinutes < Infinity && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
+                    <Timer size={12} /> &le; {maxMinutes} min
+                  </span>
+                )}
+                {availableCuisines.length > 1 && (
+                  <>
                     <button
-                      key={c}
-                      onClick={() => setActiveCuisine(activeCuisine === c ? null : c)}
+                      onClick={() => setActiveCuisine(null)}
                       className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
-                        activeCuisine === c
+                        !activeCuisine
                           ? "gradient-warm text-primary-foreground shadow-warm"
                           : "bg-muted text-muted-foreground hover:bg-border"
                       }`}
                     >
-                      {c} ({count})
+                      All ({recipes.length})
                     </button>
-                  );
-                })}
-              </>
-            )}
-          </div>
-
-          {isLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="rounded-2xl border border-border p-4 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="h-10 w-10 rounded-xl" />
-                    <div className="space-y-2 flex-1">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-1/2" />
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Skeleton className="h-6 w-16 rounded-full" />
-                    <Skeleton className="h-6 w-20 rounded-full" />
-                    <Skeleton className="h-6 w-14 rounded-full" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : filteredRecipes.length > 0 ? (
-            filteredRecipes.map((recipe, i) => (
-              <RecipeCard key={recipe.id} recipe={recipe} index={i} kids={kids} />
-            ))
-          ) : (
-            <div className="rounded-2xl border border-dashed border-border p-8 text-center">
-              <p className="text-muted-foreground text-sm">
-                No recipes match your filters
-                {activeCuisine ? ` (${activeCuisine})` : ""}
-                {maxMinutes < Infinity ? ` under ${maxMinutes} min` : ""}.
-              </p>
-              <div className="mt-3 flex items-center justify-center gap-3">
-                <button
-                  onClick={() => setActiveCuisine(null)}
-                  className="text-primary text-sm font-semibold hover:underline"
-                >
-                  Clear filters
-                </button>
-                {maxMinutes < 30 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setEffectiveMaxMinutes(30)}
-                  >
-                    <Timer size={12} className="mr-1" /> Try with 30 min
-                  </Button>
+                    {availableCuisines.map((c) => {
+                      const count = recipes.filter((r) => r.cuisine === c).length;
+                      return (
+                        <button
+                          key={c}
+                          onClick={() => setActiveCuisine(activeCuisine === c ? null : c)}
+                          className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
+                            activeCuisine === c
+                              ? "gradient-warm text-primary-foreground shadow-warm"
+                              : "bg-muted text-muted-foreground hover:bg-border"
+                          }`}
+                        >
+                          {c} ({count})
+                        </button>
+                      );
+                    })}
+                  </>
                 )}
               </div>
-            </div>
+
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="rounded-2xl border border-border p-4 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-xl" />
+                        <div className="space-y-2 flex-1">
+                          <Skeleton className="h-4 w-3/4" />
+                          <Skeleton className="h-3 w-1/2" />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Skeleton className="h-6 w-16 rounded-full" />
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                        <Skeleton className="h-6 w-14 rounded-full" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : filteredRecipes.length > 0 ? (
+                filteredRecipes.map((recipe, i) => (
+                  <RecipeCard key={recipe.id} recipe={recipe} index={i} kids={kids} isFavorite={isFavorite(recipe.id)} onToggleFavorite={toggleFavorite} />
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed border-border p-8 text-center">
+                  <p className="text-muted-foreground text-sm">
+                    No recipes match your filters
+                    {activeCuisine ? ` (${activeCuisine})` : ""}
+                    {maxMinutes < Infinity ? ` under ${maxMinutes} min` : ""}.
+                  </p>
+                  <div className="mt-3 flex items-center justify-center gap-3">
+                    <button
+                      onClick={() => setActiveCuisine(null)}
+                      className="text-primary text-sm font-semibold hover:underline"
+                    >
+                      Clear filters
+                    </button>
+                    {maxMinutes < 30 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEffectiveMaxMinutes(30)}
+                      >
+                        <Timer size={12} className="mr-1" /> Try with 30 min
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
