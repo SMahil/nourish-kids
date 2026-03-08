@@ -88,7 +88,7 @@ Return recipes as a JSON array using the exact schema — no markdown, no extra 
                           ingredients: { type: "array", items: { type: "string" } },
                           steps: { type: "array", items: { type: "string" } },
                           tags: { type: "array", items: { type: "string" } },
-                          emoji: { type: "string" },
+                          icon: { type: "string", description: "Lucide icon name from allowed set" },
                           cuisine: { type: "string" },
                           nutrition: {
                             type: "object",
