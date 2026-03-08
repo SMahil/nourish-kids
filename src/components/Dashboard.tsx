@@ -23,7 +23,9 @@ const Dashboard = ({ kids, cuisinePreferences, onGoToGrocery, onGoToPlanner, onR
   const [recipes, setRecipes] = useState<Recipe[]>(mockRecipes);
   const [isLoading, setIsLoading] = useState(false);
   const [hasAiRecipes, setHasAiRecipes] = useState(false);
-  const [activeCuisine, setActiveCuisine] = useState<string | null>(null);
+  const [activeCuisine, setActiveCuisine] = useState<string | null>(
+    cuisinePreferences?.length === 1 ? cuisinePreferences[0] : null
+  );
   const { toast } = useToast();
 
   // Get unique cuisines from current recipes
