@@ -52,7 +52,7 @@ function DraggableRecipe({ recipe, overlay }: { recipe: Recipe; overlay?: boolea
       }`}
     >
       <GripVertical size={14} className="text-muted-foreground shrink-0" />
-      <span className="text-lg">{recipe.emoji}</span>
+      <span className="text-base">{recipe.emoji}</span>
       <div className="min-w-0">
         <p className="text-xs font-bold text-foreground truncate">{recipe.title}</p>
         <p className="text-[10px] text-muted-foreground">{recipe.cookTime}</p>
@@ -80,7 +80,7 @@ function DroppableSlot({
   return (
     <div
       ref={setNodeRef}
-      className={`relative min-h-[60px] rounded-xl border-2 border-dashed transition-colors p-2 ${
+      className={`relative min-h-[56px] rounded-xl border-2 border-dashed transition-colors p-2 ${
         isOver
           ? "border-primary bg-primary/10"
           : recipe
@@ -89,10 +89,10 @@ function DroppableSlot({
       }`}
     >
       {recipe ? (
-        <div className="flex items-center gap-2">
-          <span className="text-lg">{recipe.emoji}</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-base shrink-0">{recipe.emoji}</span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold text-foreground truncate">{recipe.title}</p>
+            <p className="text-[11px] font-bold text-foreground truncate leading-tight">{recipe.title}</p>
             <p className="text-[10px] text-muted-foreground">{recipe.cookTime}</p>
           </div>
           <button
@@ -111,6 +111,39 @@ function DroppableSlot({
   );
 }
 
+/* ── Mobile card view for a single day ── */
+function DayCard({
+  day,
+  planned,
+  removeMeal,
+}: {
+  day: string;
+  planned: Record<string, Recipe | undefined>;
+  removeMeal: (day: string, meal: string) => void;
+}) {
+  return (
+    <div className="rounded-2xl bg-card border border-border shadow-soft p-4">
+      <h4 className="text-sm font-extrabold text-foreground mb-3 gradient-warm bg-clip-text text-transparent">
+        {day}
+      </h4>
+      <div className="space-y-2">
+        {MEALS.map((meal) => {
+          const key = slotKey(day, meal);
+          return (
+            <DroppableSlot
+              key={key}
+              day={day}
+              meal={meal}
+              recipe={planned[key] ?? null}
+              onRemove={() => removeMeal(day, meal)}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 const WeeklyPlanner = ({ onBack }: Props) => {
   const { planned, loading, setMeal, removeMeal } = useMealPlans();
   const [activeRecipe, setActiveRecipe] = useState<Recipe | null>(null);
@@ -118,7 +151,6 @@ const WeeklyPlanner = ({ onBack }: Props) => {
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
-  // Aggregate ingredients from all planned recipes
   const shoppingList = useMemo(() => {
     const countMap = new Map<string, number>();
     Object.values(planned).forEach((recipe) => {
@@ -173,7 +205,7 @@ const WeeklyPlanner = ({ onBack }: Props) => {
     }
   };
 
-  const filledCount = Object.keys(planned).filter(k => planned[k]).length;
+  const filledCount = Object.keys(planned).filter((k) => planned[k]).length;
   const totalSlots = DAYS.length * MEALS.length;
 
   if (loading) {
@@ -191,8 +223,9 @@ const WeeklyPlanner = ({ onBack }: Props) => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="min-h-screen px-4 py-8 sm:px-6">
-        <div className="mx-auto max-w-6xl">
+      <div className="min-h-screen px-4 py-6 sm:px-6">
+        <div className="mx-auto max-w-7xl">
+          {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -200,75 +233,82 @@ const WeeklyPlanner = ({ onBack }: Props) => {
           >
             <button
               onClick={onBack}
-              className="mb-4 flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              className="mb-3 flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft size={16} /> Back to Dashboard
             </button>
-            <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
-                <h1 className="text-2xl font-extrabold text-foreground">📅 Weekly Meal Planner</h1>
-                <p className="text-sm text-muted-foreground">
+                <h1 className="text-xl sm:text-2xl font-extrabold text-foreground">📅 Weekly Meal Planner</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Drag recipes from the sidebar into your week
                 </p>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="rounded-full gradient-peach px-4 py-2 text-sm font-semibold text-foreground">
-                  {filledCount}/{totalSlots} meals planned
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="rounded-full gradient-peach px-3 py-1.5 text-xs font-semibold text-foreground">
+                  {filledCount}/{totalSlots} meals
                 </div>
                 {filledCount > 0 && (
                   <Button
                     onClick={() => setShowShoppingList(!showShoppingList)}
-                    className={`rounded-full gap-2 ${showShoppingList ? "gradient-warm text-primary-foreground shadow-warm border-0" : ""}`}
+                    className={`rounded-full gap-2 text-xs ${showShoppingList ? "gradient-warm text-primary-foreground shadow-warm border-0" : ""}`}
                     variant={showShoppingList ? "default" : "outline"}
                     size="sm"
                   >
-                    <ShoppingCart size={16} />
-                    Shopping List ({shoppingList.length})
+                    <ShoppingCart size={14} />
+                    Shopping ({shoppingList.length})
                   </Button>
                 )}
               </div>
             </div>
           </motion.div>
 
-          <div className="flex gap-6 flex-col lg:flex-row">
+          {/* Main content: sidebar + grid */}
+          <div className="flex gap-5 flex-col lg:flex-row">
+            {/* Recipe sidebar */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
-              className="w-full lg:w-56 shrink-0"
+              className="w-full lg:w-52 shrink-0"
             >
-              <h3 className="mb-3 text-sm font-bold text-foreground">🍽️ Recipes</h3>
-              <div className="space-y-2 lg:max-h-[70vh] lg:overflow-y-auto lg:pr-2">
+              <h3 className="mb-2 text-sm font-bold text-foreground">🍽️ Recipes</h3>
+              <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible lg:max-h-[70vh] lg:overflow-y-auto lg:pr-1 pb-2 lg:pb-0">
                 {mockRecipes.map((recipe) => (
-                  <DraggableRecipe key={recipe.id} recipe={recipe} />
+                  <div key={recipe.id} className="shrink-0 lg:shrink">
+                    <DraggableRecipe recipe={recipe} />
+                  </div>
                 ))}
               </div>
             </motion.div>
 
+            {/* Desktop grid view */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex-1 overflow-x-auto"
+              className="flex-1 hidden lg:block overflow-x-auto"
             >
-              <div className="min-w-[640px]">
-                <div className="grid grid-cols-[80px_repeat(7,1fr)] gap-2 mb-2">
+              <div className="min-w-[700px]">
+                {/* Day headers */}
+                <div className="grid grid-cols-[72px_repeat(7,1fr)] gap-1.5 mb-1.5">
                   <div />
                   {DAYS.map((day) => (
                     <div
                       key={day}
-                      className="text-center text-xs font-bold text-foreground rounded-xl gradient-warm text-primary-foreground py-2"
+                      className="text-center text-[11px] font-bold rounded-lg gradient-warm text-primary-foreground py-1.5"
                     >
                       {day.slice(0, 3)}
                     </div>
                   ))}
                 </div>
 
+                {/* Meal rows */}
                 {MEALS.map((meal) => (
-                  <div key={meal} className="grid grid-cols-[80px_repeat(7,1fr)] gap-2 mb-2">
-                    <div className="flex items-center justify-center text-xs font-bold text-muted-foreground">
-                      {meal === "Breakfast" ? "🌅" : meal === "Lunch" ? "☀️" : "🌙"}{" "}
-                      {meal}
+                  <div key={meal} className="grid grid-cols-[72px_repeat(7,1fr)] gap-1.5 mb-1.5">
+                    <div className="flex items-center justify-center text-[11px] font-bold text-muted-foreground gap-1">
+                      {meal === "Breakfast" ? "🌅" : meal === "Lunch" ? "☀️" : "🌙"}
+                      <span className="hidden xl:inline">{meal}</span>
                     </div>
                     {DAYS.map((day) => {
                       const key = slotKey(day, meal);
@@ -286,7 +326,16 @@ const WeeklyPlanner = ({ onBack }: Props) => {
                 ))}
               </div>
             </motion.div>
-          {/* Shopping List Panel */}
+
+            {/* Mobile card view */}
+            <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {DAYS.map((day) => (
+                <DayCard key={day} day={day} planned={planned} removeMeal={removeMeal} />
+              ))}
+            </div>
+          </div>
+
+          {/* Shopping List Panel — outside the flex container */}
           <AnimatePresence>
             {showShoppingList && shoppingList.length > 0 && (
               <motion.div
@@ -296,7 +345,7 @@ const WeeklyPlanner = ({ onBack }: Props) => {
                 className="mt-6 overflow-hidden"
               >
                 <div className="rounded-2xl bg-card border border-border shadow-soft p-5">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                     <div className="flex items-center gap-2">
                       <ShoppingCart size={18} className="text-primary" />
                       <h3 className="text-lg font-bold text-foreground">Shopping List</h3>
@@ -314,7 +363,7 @@ const WeeklyPlanner = ({ onBack }: Props) => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                     {shoppingList.map((item) => {
                       const checked = checkedItems.has(item.name);
                       return (
@@ -322,19 +371,21 @@ const WeeklyPlanner = ({ onBack }: Props) => {
                           key={item.name}
                           onClick={() => toggleCheck(item.name)}
                           className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-left transition-all ${
-                            checked
-                              ? "bg-muted/50 opacity-60"
-                              : "bg-muted/20 hover:bg-muted/40"
+                            checked ? "bg-muted/50 opacity-60" : "bg-muted/20 hover:bg-muted/40"
                           }`}
                         >
-                          <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors ${
-                            checked
-                              ? "gradient-warm border-transparent"
-                              : "border-border"
-                          }`}>
+                          <div
+                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors ${
+                              checked ? "gradient-warm border-transparent" : "border-border"
+                            }`}
+                          >
                             {checked && <Check size={12} className="text-primary-foreground" />}
                           </div>
-                          <span className={`text-sm capitalize ${checked ? "line-through text-muted-foreground" : "text-foreground font-medium"}`}>
+                          <span
+                            className={`text-sm capitalize ${
+                              checked ? "line-through text-muted-foreground" : "text-foreground font-medium"
+                            }`}
+                          >
                             {item.display}
                           </span>
                         </button>
@@ -351,7 +402,6 @@ const WeeklyPlanner = ({ onBack }: Props) => {
               </motion.div>
             )}
           </AnimatePresence>
-          </div>
         </div>
       </div>
 
