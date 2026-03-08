@@ -62,7 +62,7 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("suggest-recipes", {
-        body: { kids, cuisinePreferences },
+        body: { kids, cuisinePreferences, maxCookingTime },
       });
 
       if (error) throw error;
