@@ -52,16 +52,20 @@ Return recipes as a JSON array using the exact schema — no markdown, no extra 
     const userPrompt = `Kid profiles:\n${kidDescriptions}\n\nFind 6 REAL recipes from popular cooking sites (e.g. AllRecipes, BBC Good Food, Tasty, etc.) that match all filters.${timeLimit < 999 ? ` REMEMBER: Every recipe must be ${timeLimit} minutes or less. cookTime must be "X min" where X ≤ ${timeLimit}.` : ""} Return a JSON array of recipe objects with these fields:
 { "id": string, "title": string, "cookTime": string, "difficulty": "Easy"|"Medium", "servings": number, "kidApproval": number (70-99), "ingredients": string[], "steps": string[], "tags": string[], "icon": string (one of: "utensils-crossed","pizza","cake","salad","soup","cookie","sandwich","coffee","ice-cream","egg","fish","beef","apple","cherry","grape","carrot","wheat","cup","milk","flame","leafy","bean","circle","croissant","glass","drumstick","popcorn"), "cuisine": string, "matchReasons": string[] (2-3 personalized reasons referencing kid names), "nutrition": { "calories": number, "protein": number, "carbs": number, "fat": number, "fiber": number } }`;
 
-    const response = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+    const models = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite"];
+    let response: Response | null = null;
+
+    for (const model of models) {
+      response = await fetch(
+        "https://ai.gateway.lovable.dev/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
@@ -118,7 +122,12 @@ Return recipes as a JSON array using the exact schema — no markdown, no extra 
           tool_choice: { type: "function", function: { name: "return_recipes" } },
         }),
       }
-    );
+      );
+
+      if (response.ok) break;
+      if (response.status === 429 || response.status === 402) break;
+      console.error(`Model ${model} failed with ${response.status}, trying next...`);
+    }
 
     if (!response.ok) {
       if (response.status === 429) {
