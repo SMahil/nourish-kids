@@ -9,7 +9,7 @@ import OnboardingPreferences from "@/components/OnboardingPreferences";
 import Dashboard from "@/components/Dashboard";
 import GroceryUpload from "@/components/GroceryUpload";
 import WeeklyPlanner from "@/components/WeeklyPlanner";
-import { KidProfile } from "@/lib/types";
+import { KidProfile, Recipe } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 
 type Screen = "welcome" | "kids" | "preferences" | "dashboard" | "grocery" | "planner";
@@ -25,6 +25,7 @@ const Index = () => {
   const [cuisinePreferences, setCuisinePreferences] = useState<string[]>([]);
   const [maxCookingTime, setMaxCookingTime] = useState<string>("45+ min");
   const [prefsLoaded, setPrefsLoaded] = useState(false);
+  const [aiRecipes, setAiRecipes] = useState<Recipe[]>([]);
 
   // Redirect to auth if not logged in and not guest
   useEffect(() => {
@@ -72,6 +73,8 @@ const Index = () => {
       .eq("id", user.id);
   };
 
+  const activeKids = localKids.length > 0 ? localKids : kids;
+
   if (authLoading || (!isGuest && (kidsLoading || !prefsLoaded))) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -110,20 +113,31 @@ const Index = () => {
       )}
       {screen === "dashboard" && (
         <Dashboard
-          kids={localKids.length > 0 ? localKids : kids}
+          kids={activeKids}
           cuisinePreferences={cuisinePreferences}
           maxCookingTime={maxCookingTime}
           onGoToGrocery={() => setScreen("grocery")}
           onGoToPlanner={() => setScreen("planner")}
           onReset={() => setScreen("kids")}
           onSignOut={handleSignOut}
+          isGuest={isGuest}
+          onRecipesChange={setAiRecipes}
         />
       )}
       {screen === "grocery" && (
-        <GroceryUpload onBack={() => setScreen("dashboard")} />
+        <GroceryUpload
+          onBack={() => setScreen("dashboard")}
+          kids={activeKids}
+          cuisinePreferences={cuisinePreferences}
+          maxCookingTime={maxCookingTime}
+          isGuest={isGuest}
+        />
       )}
       {screen === "planner" && (
-        <WeeklyPlanner onBack={() => setScreen("dashboard")} />
+        <WeeklyPlanner
+          onBack={() => setScreen("dashboard")}
+          recipes={aiRecipes.length > 0 ? aiRecipes : undefined}
+        />
       )}
     </div>
   );

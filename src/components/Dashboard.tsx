@@ -18,9 +18,11 @@ interface Props {
   onGoToPlanner: () => void;
   onReset: () => void;
   onSignOut?: () => void;
+  isGuest?: boolean;
+  onRecipesChange?: (recipes: Recipe[]) => void;
 }
 
-const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, onGoToPlanner, onReset, onSignOut }: Props) => {
+const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, onGoToPlanner, onReset, onSignOut, isGuest, onRecipesChange }: Props) => {
   const kidNames = kids.map((k) => k.name || "your child").join(" & ");
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -68,6 +70,11 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
     fetchAiSuggestions();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const updateRecipes = (newRecipes: Recipe[]) => {
+    setRecipes(newRecipes);
+    onRecipesChange?.(newRecipes);
+  };
+
   const fetchAiSuggestions = async () => {
     setIsLoading(true);
     try {
@@ -78,7 +85,7 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
       if (error) throw error;
 
       if (data?.recipes && Array.isArray(data.recipes) && data.recipes.length > 0) {
-        setRecipes(data.recipes);
+        updateRecipes(data.recipes);
         setHasAiRecipes(true);
         toast({
           title: "AI recipes ready!",
@@ -99,10 +106,22 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
             : "Using curated suggestions instead.",
         variant: "destructive",
       });
-      setRecipes(mockRecipes);
+      updateRecipes(mockRecipes);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Guest-aware favorite handler
+  const handleToggleFavorite = (recipe: Recipe) => {
+    if (isGuest) {
+      toast({
+        title: "Sign up to save favorites",
+        description: "Create a free account to keep your favourite recipes.",
+      });
+      return;
+    }
+    toggleFavorite(recipe);
   };
 
   return (
@@ -239,7 +258,7 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
             /* Favorites view */
             favorites.length > 0 ? (
               favorites.map((recipe, i) => (
-                <RecipeCard key={recipe.id} recipe={recipe} index={i} kids={kids} isFavorite={true} onToggleFavorite={toggleFavorite} />
+                <RecipeCard key={recipe.id} recipe={recipe} index={i} kids={kids} isFavorite={true} onToggleFavorite={handleToggleFavorite} />
               ))
             ) : (
               <div className="rounded-2xl border border-dashed border-border p-8 text-center">
@@ -331,7 +350,7 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
                 </div>
               ) : filteredRecipes.length > 0 ? (
                 filteredRecipes.map((recipe, i) => (
-                  <RecipeCard key={recipe.id} recipe={recipe} index={i} kids={kids} isFavorite={isFavorite(recipe.id)} onToggleFavorite={toggleFavorite} />
+                  <RecipeCard key={recipe.id} recipe={recipe} index={i} kids={kids} isFavorite={isFavorite(recipe.id)} onToggleFavorite={handleToggleFavorite} />
                 ))
               ) : (
                 <div className="rounded-2xl border border-dashed border-border p-8 text-center">
