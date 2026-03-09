@@ -11,9 +11,23 @@ export function useFavorites() {
 
   const fetchFavorites = useCallback(async () => {
     if (!user) {
+      const localFavs = localStorage.getItem("guest_favorites");
+      if (localFavs) {
+        try {
+          const parsed = JSON.parse(localFavs) as Recipe[];
+          setFavorites(parsed);
+          setFavoriteIds(new Set(parsed.map((r) => r.id)));
+        } catch (e) {
+          console.error("Failed to parse local favorites", e);
+        }
+      } else {
+        setFavorites([]);
+        setFavoriteIds(new Set());
+      }
       setLoading(false);
       return;
     }
+
     setLoading(true);
     const { data } = await supabase
       .from("favorite_recipes")
@@ -34,9 +48,31 @@ export function useFavorites() {
   }, [fetchFavorites]);
 
   const toggleFavorite = async (recipe: Recipe) => {
-    if (!user) return;
-
     const isFav = favoriteIds.has(recipe.id);
+
+    if (!user) {
+      // LocalStorage logic for guest users
+      if (isFav) {
+        setFavoriteIds((prev) => {
+          const next = new Set(prev);
+          next.delete(recipe.id);
+          return next;
+        });
+        setFavorites((prev) => {
+          const next = prev.filter((r) => r.id !== recipe.id);
+          localStorage.setItem("guest_favorites", JSON.stringify(next));
+          return next;
+        });
+      } else {
+        setFavoriteIds((prev) => new Set(prev).add(recipe.id));
+        setFavorites((prev) => {
+          const next = [recipe, ...prev];
+          localStorage.setItem("guest_favorites", JSON.stringify(next));
+          return next;
+        });
+      }
+      return;
+    }
 
     if (isFav) {
       // Remove
