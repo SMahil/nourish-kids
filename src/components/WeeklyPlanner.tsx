@@ -428,7 +428,7 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
                 <UtensilsCrossed size={14} className="text-primary" /> Recipes
               </h3>
               <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible lg:max-h-[70vh] lg:overflow-y-auto lg:pr-1 pb-2 lg:pb-0">
-                {mockRecipes.map((recipe) => (
+                {(propRecipes && propRecipes.length > 0 ? propRecipes : mockRecipes).map((recipe) => (
                   <div key={recipe.id} className="shrink-0 lg:shrink">
                     <DraggableRecipe recipe={recipe} />
                   </div>
