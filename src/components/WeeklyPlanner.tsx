@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface Props {
   onBack: () => void;
+  recipes?: Recipe[];
 }
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
