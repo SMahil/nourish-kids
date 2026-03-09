@@ -68,16 +68,20 @@ function DroppableSlot({
   meal,
   recipe,
   onRemove,
+  showLabel = false,
 }: {
   day: string;
   meal: string;
   recipe: Recipe | null;
   onRemove: () => void;
+  showLabel?: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: slotKey(day, meal),
     data: { day, meal },
   });
+
+  const mealIcon = meal === "Breakfast" ? <Sunrise size={12} className="text-primary/70" /> : meal === "Lunch" ? <Sun size={12} className="text-primary/70" /> : <Moon size={12} className="text-primary/70" />;
 
   return (
     <div
@@ -90,6 +94,12 @@ function DroppableSlot({
           : "border-border bg-muted/30"
       }`}
     >
+      {showLabel && (
+        <div className="flex items-center gap-1 mb-1.5">
+          {mealIcon}
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">{meal}</span>
+        </div>
+      )}
       {recipe ? (
         <div className="flex items-center gap-1.5">
           <RecipeIcon icon={recipe.icon} size={16} className="shrink-0" />
@@ -138,6 +148,7 @@ function DayCard({
               meal={meal}
               recipe={planned[key] ?? null}
               onRemove={() => removeMeal(day, meal)}
+              showLabel
             />
           );
         })}
