@@ -282,7 +282,7 @@ function NutritionSnapshot({ planned }: { planned: Record<string, Recipe | undef
   );
 }
 
-const WeeklyPlanner = ({ onBack }: Props) => {
+const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
   const { planned, loading, setMeal, removeMeal } = useMealPlans();
   const [activeRecipe, setActiveRecipe] = useState<Recipe | null>(null);
   const [showShoppingList, setShowShoppingList] = useState(false);
