@@ -148,6 +148,7 @@ function DayCard({
               meal={meal}
               recipe={planned[key] ?? null}
               onRemove={() => removeMeal(day, meal)}
+              showLabel
             />
           );
         })}
