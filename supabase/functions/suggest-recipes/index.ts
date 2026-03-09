@@ -122,7 +122,12 @@ Return recipes as a JSON array using the exact schema — no markdown, no extra 
           tool_choice: { type: "function", function: { name: "return_recipes" } },
         }),
       }
-    );
+      );
+
+      if (response.ok) break;
+      if (response.status === 429 || response.status === 402) break;
+      console.error(`Model ${model} failed with ${response.status}, trying next...`);
+    }
 
     if (!response.ok) {
       if (response.status === 429) {
