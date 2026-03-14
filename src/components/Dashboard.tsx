@@ -112,15 +112,7 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
     }
   };
 
-  // Guest-aware favorite handler
   const handleToggleFavorite = (recipe: Recipe) => {
-    if (isGuest) {
-      toast({
-        title: "Sign up to save favorites",
-        description: "Create a free account to keep your favourite recipes.",
-      });
-      return;
-    }
     toggleFavorite(recipe);
   };
 
