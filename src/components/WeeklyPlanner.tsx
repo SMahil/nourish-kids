@@ -302,6 +302,31 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
+  const weekRangeLabel = useMemo(() => {
+    const end = new Date(weekStart);
+    end.setDate(end.getDate() + 6);
+
+    const startLabel = new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+    }).format(weekStart);
+
+    const endLabel = new Intl.DateTimeFormat("en-US", {
+      month: weekStart.getMonth() === end.getMonth() ? undefined : "short",
+      day: "numeric",
+    }).format(end);
+
+    return `${startLabel} – ${endLabel}`;
+  }, [weekStart]);
+
+  const isCurrentWeek = useMemo(() => {
+    const currentWeekStart = new Date();
+    currentWeekStart.setHours(0, 0, 0, 0);
+    const day = currentWeekStart.getDay();
+    currentWeekStart.setDate(currentWeekStart.getDate() - ((day + 6) % 7));
+    return currentWeekStart.getTime() === weekStart.getTime();
+  }, [weekStart]);
+
   const shoppingList = useMemo(() => {
     const countMap = new Map<string, number>();
     Object.values(planned).forEach((recipe) => {
