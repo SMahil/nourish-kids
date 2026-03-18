@@ -147,6 +147,7 @@ function DayCard({
           return (
             <DroppableSlot
               key={key}
+              slotId={`${key}-mobile`}
               day={day}
               meal={meal}
               recipe={planned[key] ?? null}
