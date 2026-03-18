@@ -65,12 +65,14 @@ function DraggableRecipe({ recipe, overlay }: { recipe: Recipe; overlay?: boolea
 }
 
 function DroppableSlot({
+  slotId,
   day,
   meal,
   recipe,
   onRemove,
   showLabel = false,
 }: {
+  slotId: string;
   day: string;
   meal: string;
   recipe: Recipe | null;
@@ -78,7 +80,7 @@ function DroppableSlot({
   showLabel?: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({
-    id: slotKey(day, meal),
+    id: slotId,
     data: { day, meal },
   });
 
