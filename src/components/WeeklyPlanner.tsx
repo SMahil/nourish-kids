@@ -11,7 +11,7 @@ import {
   DragStartEvent,
   DragEndEvent,
 } from "@dnd-kit/core";
-import { ArrowLeft, Trash2, GripVertical, Loader2, ShoppingCart, Check, Copy, X, CalendarDays, UtensilsCrossed, Sunrise, Sun, Moon, BarChart3, Flame, Beef, Wheat, Droplets, Leaf, Apple, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Trash2, GripVertical, Loader2, ShoppingCart, Check, Copy, X, CalendarDays, UtensilsCrossed, Sunrise, Sun, Moon, BarChart3, Flame, Beef, Wheat, Droplets, Leaf, Apple, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { mockRecipes } from "@/lib/mockData";
 import { Recipe, NutritionInfo } from "@/lib/types";
@@ -65,12 +65,14 @@ function DraggableRecipe({ recipe, overlay }: { recipe: Recipe; overlay?: boolea
 }
 
 function DroppableSlot({
+  slotId,
   day,
   meal,
   recipe,
   onRemove,
   showLabel = false,
 }: {
+  slotId: string;
   day: string;
   meal: string;
   recipe: Recipe | null;
@@ -78,7 +80,7 @@ function DroppableSlot({
   showLabel?: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({
-    id: slotKey(day, meal),
+    id: slotId,
     data: { day, meal },
   });
 
@@ -145,6 +147,7 @@ function DayCard({
           return (
             <DroppableSlot
               key={key}
+              slotId={`${key}-mobile`}
               day={day}
               meal={meal}
               recipe={planned[key] ?? null}
@@ -283,12 +286,46 @@ function NutritionSnapshot({ planned }: { planned: Record<string, Recipe | undef
 }
 
 const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
-  const { planned, loading, setMeal, removeMeal } = useMealPlans();
+  const {
+    planned,
+    loading,
+    setMeal,
+    removeMeal,
+    weekStart,
+    goToPreviousWeek,
+    goToNextWeek,
+    goToCurrentWeek,
+  } = useMealPlans();
   const [activeRecipe, setActiveRecipe] = useState<Recipe | null>(null);
   const [showShoppingList, setShowShoppingList] = useState(false);
   const [showNutrition, setShowNutrition] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+
+  const weekRangeLabel = useMemo(() => {
+    const end = new Date(weekStart);
+    end.setDate(end.getDate() + 6);
+
+    const startLabel = new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+    }).format(weekStart);
+
+    const endLabel = new Intl.DateTimeFormat("en-US", {
+      month: weekStart.getMonth() === end.getMonth() ? undefined : "short",
+      day: "numeric",
+    }).format(end);
+
+    return `${startLabel} – ${endLabel}`;
+  }, [weekStart]);
+
+  const isCurrentWeek = useMemo(() => {
+    const currentWeekStart = new Date();
+    currentWeekStart.setHours(0, 0, 0, 0);
+    const day = currentWeekStart.getDay();
+    currentWeekStart.setDate(currentWeekStart.getDate() - ((day + 6) % 7));
+    return currentWeekStart.getTime() === weekStart.getTime();
+  }, [weekStart]);
 
   const shoppingList = useMemo(() => {
     const countMap = new Map<string, number>();
@@ -337,11 +374,10 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
     const recipe: Recipe = active.data.current?.recipe;
     if (!recipe) return;
 
-    const dropId = String(over.id);
-    if (DAYS.some((d) => MEALS.some((m) => slotKey(d, m) === dropId))) {
-      const [day, meal] = dropId.split("-");
-      setMeal(day, meal, recipe);
-    }
+    const target = over.data.current as { day?: string; meal?: string } | undefined;
+    if (!target?.day || !target?.meal) return;
+
+    setMeal(target.day, target.meal, recipe);
   };
 
   const filledCount = Object.keys(planned).filter((k) => planned[k]).length;
@@ -385,7 +421,40 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
                   Drag recipes from the sidebar into your week
                 </p>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap justify-end">
+                <div className="flex items-center gap-1 rounded-full border border-border bg-card px-1 py-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={goToPreviousWeek}
+                    className="h-7 w-7 rounded-full"
+                    aria-label="Go to previous week"
+                  >
+                    <ChevronLeft size={14} />
+                  </Button>
+                  <span className="px-2 text-xs font-semibold text-foreground whitespace-nowrap">
+                    {weekRangeLabel}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={goToNextWeek}
+                    className="h-7 w-7 rounded-full"
+                    aria-label="Go to next week"
+                  >
+                    <ChevronRight size={14} />
+                  </Button>
+                </div>
+                {!isCurrentWeek && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={goToCurrentWeek}
+                    className="rounded-full text-xs"
+                  >
+                    This week
+                  </Button>
+                )}
                 <div className="rounded-full gradient-peach px-3 py-1.5 text-xs font-semibold text-foreground">
                   {filledCount}/{totalSlots} meals
                 </div>
@@ -467,6 +536,7 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
                       return (
                         <DroppableSlot
                           key={key}
+                          slotId={`${key}-desktop`}
                           day={day}
                           meal={meal}
                           recipe={planned[key] ?? null}
