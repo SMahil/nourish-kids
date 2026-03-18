@@ -421,7 +421,40 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
                   Drag recipes from the sidebar into your week
                 </p>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap justify-end">
+                <div className="flex items-center gap-1 rounded-full border border-border bg-card px-1 py-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={goToPreviousWeek}
+                    className="h-7 w-7 rounded-full"
+                    aria-label="Go to previous week"
+                  >
+                    <ChevronLeft size={14} />
+                  </Button>
+                  <span className="px-2 text-xs font-semibold text-foreground whitespace-nowrap">
+                    {weekRangeLabel}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={goToNextWeek}
+                    className="h-7 w-7 rounded-full"
+                    aria-label="Go to next week"
+                  >
+                    <ChevronRight size={14} />
+                  </Button>
+                </div>
+                {!isCurrentWeek && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={goToCurrentWeek}
+                    className="rounded-full text-xs"
+                  >
+                    This week
+                  </Button>
+                )}
                 <div className="rounded-full gradient-peach px-3 py-1.5 text-xs font-semibold text-foreground">
                   {filledCount}/{totalSlots} meals
                 </div>
