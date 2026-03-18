@@ -374,11 +374,10 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
     const recipe: Recipe = active.data.current?.recipe;
     if (!recipe) return;
 
-    const dropId = String(over.id);
-    if (DAYS.some((d) => MEALS.some((m) => slotKey(d, m) === dropId))) {
-      const [day, meal] = dropId.split("-");
-      setMeal(day, meal, recipe);
-    }
+    const target = over.data.current as { day?: string; meal?: string } | undefined;
+    if (!target?.day || !target?.meal) return;
+
+    setMeal(target.day, target.meal, recipe);
   };
 
   const filledCount = Object.keys(planned).filter((k) => planned[k]).length;
