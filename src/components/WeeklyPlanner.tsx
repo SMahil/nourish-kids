@@ -470,6 +470,7 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
                       return (
                         <DroppableSlot
                           key={key}
+                          slotId={`${key}-desktop`}
                           day={day}
                           meal={meal}
                           recipe={planned[key] ?? null}
