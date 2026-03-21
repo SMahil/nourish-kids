@@ -5,6 +5,7 @@ import {
   DndContext,
   DragOverlay,
   closestCorners,
+  MeasuringStrategy,
   PointerSensor,
   useSensor,
   useSensors,
@@ -19,6 +20,7 @@ import { useMealPlans } from "@/hooks/useMealPlans";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Props {
   onBack: () => void;
@@ -30,9 +32,9 @@ const MEALS = ["Breakfast", "Lunch", "Dinner"] as const;
 
 const slotKey = (day: string, meal: string) => `${day}-${meal}`;
 
-function DraggableRecipe({ recipe, overlay }: { recipe: Recipe; overlay?: boolean }) {
+function DraggableRecipe({ recipe, draggableId, overlay }: { recipe: Recipe; draggableId: string; overlay?: boolean }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: `recipe-${recipe.id}`,
+    id: draggableId,
     data: { recipe },
   });
 
@@ -286,6 +288,7 @@ function NutritionSnapshot({ planned }: { planned: Record<string, Recipe | undef
 }
 
 const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
+  const isMobile = useIsMobile();
   const {
     planned,
     loading,
@@ -316,7 +319,7 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
       day: "numeric",
     }).format(end);
 
-    return `${startLabel} – ${endLabel}`;
+    return `Week of ${startLabel} – ${endLabel}`;
   }, [weekStart]);
 
   const isCurrentWeek = useMemo(() => {
@@ -395,6 +398,7 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
     <DndContext
       sensors={sensors}
       collisionDetection={closestCorners}
+      measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
@@ -495,66 +499,68 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
                 <UtensilsCrossed size={14} className="text-primary" /> Recipes
               </h3>
               <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible lg:max-h-[70vh] lg:overflow-y-auto lg:pr-1 pb-2 lg:pb-0">
-                {(propRecipes && propRecipes.length > 0 ? propRecipes : mockRecipes).map((recipe) => (
-                  <div key={recipe.id} className="shrink-0 lg:shrink">
-                    <DraggableRecipe recipe={recipe} />
+                {(propRecipes && propRecipes.length > 0 ? propRecipes : mockRecipes).map((recipe, index) => (
+                  <div key={`${recipe.id}-${index}`} className="shrink-0 lg:shrink">
+                    <DraggableRecipe recipe={recipe} draggableId={`recipe-${recipe.id}-${index}`} />
                   </div>
                 ))}
               </div>
             </motion.div>
 
-            {/* Desktop grid view */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="flex-1 hidden lg:block overflow-x-auto"
-            >
-              <div className="min-w-[700px]">
-                {/* Day headers */}
-                <div className="grid grid-cols-[72px_repeat(7,1fr)] gap-1.5 mb-1.5">
-                  <div />
-                  {DAYS.map((day) => (
-                    <div
-                      key={day}
-                      className="text-center text-[11px] font-bold rounded-lg gradient-warm text-primary-foreground py-1.5"
-                    >
-                      {day.slice(0, 3)}
+            {isMobile ? (
+              /* Mobile card view */
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {DAYS.map((day) => (
+                  <DayCard key={day} day={day} planned={planned} removeMeal={removeMeal} />
+                ))}
+              </div>
+            ) : (
+              /* Desktop grid view */
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="flex-1 overflow-x-auto"
+              >
+                <div className="min-w-[700px]">
+                  {/* Day headers */}
+                  <div className="grid grid-cols-[72px_repeat(7,1fr)] gap-1.5 mb-1.5">
+                    <div />
+                    {DAYS.map((day) => (
+                      <div
+                        key={day}
+                        className="text-center text-[11px] font-bold rounded-lg gradient-warm text-primary-foreground py-1.5"
+                      >
+                        {day.slice(0, 3)}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Meal rows */}
+                  {MEALS.map((meal) => (
+                    <div key={meal} className="grid grid-cols-[72px_repeat(7,1fr)] gap-1.5 mb-1.5">
+                      <div className="flex items-center justify-center text-[11px] font-bold text-muted-foreground gap-1">
+                        {meal === "Breakfast" ? <Sunrise size={13} /> : meal === "Lunch" ? <Sun size={13} /> : <Moon size={13} />}
+                        <span className="hidden xl:inline">{meal}</span>
+                      </div>
+                      {DAYS.map((day) => {
+                        const key = slotKey(day, meal);
+                        return (
+                          <DroppableSlot
+                            key={key}
+                            slotId={`${key}-desktop`}
+                            day={day}
+                            meal={meal}
+                            recipe={planned[key] ?? null}
+                            onRemove={() => removeMeal(day, meal)}
+                          />
+                        );
+                      })}
                     </div>
                   ))}
                 </div>
-
-                {/* Meal rows */}
-                {MEALS.map((meal) => (
-                  <div key={meal} className="grid grid-cols-[72px_repeat(7,1fr)] gap-1.5 mb-1.5">
-                    <div className="flex items-center justify-center text-[11px] font-bold text-muted-foreground gap-1">
-                      {meal === "Breakfast" ? <Sunrise size={13} /> : meal === "Lunch" ? <Sun size={13} /> : <Moon size={13} />}
-                      <span className="hidden xl:inline">{meal}</span>
-                    </div>
-                    {DAYS.map((day) => {
-                      const key = slotKey(day, meal);
-                      return (
-                        <DroppableSlot
-                          key={key}
-                          slotId={`${key}-desktop`}
-                          day={day}
-                          meal={meal}
-                          recipe={planned[key] ?? null}
-                          onRemove={() => removeMeal(day, meal)}
-                        />
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Mobile card view */}
-            <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {DAYS.map((day) => (
-                <DayCard key={day} day={day} planned={planned} removeMeal={removeMeal} />
-              ))}
-            </div>
+              </motion.div>
+            )}
           </div>
 
           {/* Nutrition Snapshot Panel */}
@@ -642,7 +648,7 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
       </div>
 
       <DragOverlay>
-        {activeRecipe ? <DraggableRecipe recipe={activeRecipe} overlay /> : null}
+        {activeRecipe ? <DraggableRecipe recipe={activeRecipe} draggableId="recipe-overlay" overlay /> : null}
       </DragOverlay>
     </DndContext>
   );
