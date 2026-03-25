@@ -20,12 +20,13 @@ interface Props {
   onSignOut?: () => void;
   isGuest?: boolean;
   onRecipesChange?: (recipes: Recipe[]) => void;
+  initialRecipes?: Recipe[];
 }
 
-const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, onGoToPlanner, onReset, onSignOut, isGuest, onRecipesChange }: Props) => {
+const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, onGoToPlanner, onReset, onSignOut, isGuest, onRecipesChange, initialRecipes }: Props) => {
   const kidNames = kids.map((k) => k.name || "your child").join(" & ");
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [recipes, setRecipes] = useState<Recipe[]>(initialRecipes ?? []);
+  const [isLoading, setIsLoading] = useState(!initialRecipes?.length);
   const [hasAiRecipes, setHasAiRecipes] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
   const [activeCuisine, setActiveCuisine] = useState<string | null>(
@@ -65,9 +66,13 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
     });
   }, [recipes, activeCuisine, maxMinutes]);
 
-  // Auto-fetch real recipes on mount
+  // Auto-fetch real recipes on mount, skip if we already have cached recipes
   useEffect(() => {
-    fetchAiSuggestions();
+    if (!initialRecipes?.length) {
+      fetchAiSuggestions();
+    } else {
+      setHasAiRecipes(true);
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateRecipes = (newRecipes: Recipe[]) => {
@@ -299,10 +304,12 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
                           : "bg-muted text-muted-foreground hover:bg-border"
                       }`}
                     >
-                      All ({recipes.length})
+                      All ({recipes.filter((r) => parseMinutes(r.cookTime) <= maxMinutes).length})
                     </button>
                     {availableCuisines.map((c) => {
-                      const count = recipes.filter((r) => r.cuisine === c).length;
+                      const count = recipes.filter(
+                        (r) => r.cuisine === c && parseMinutes(r.cookTime) <= maxMinutes
+                      ).length;
                       return (
                         <button
                           key={c}

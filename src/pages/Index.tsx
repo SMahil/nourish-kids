@@ -122,6 +122,7 @@ const Index = () => {
           onSignOut={handleSignOut}
           isGuest={isGuest}
           onRecipesChange={setAiRecipes}
+          initialRecipes={aiRecipes.length > 0 ? aiRecipes : undefined}
         />
       )}
       {screen === "grocery" && (

@@ -12,11 +12,11 @@ import {
   DragStartEvent,
   DragEndEvent,
 } from "@dnd-kit/core";
-import { ArrowLeft, Trash2, GripVertical, Loader2, ShoppingCart, Check, Copy, X, CalendarDays, UtensilsCrossed, Sunrise, Sun, Moon, BarChart3, Flame, Beef, Wheat, Droplets, Leaf, Apple, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Trash2, GripVertical, Loader2, ShoppingCart, Check, Copy, X, CalendarDays, UtensilsCrossed, Sunrise, Sun, Moon, BarChart3, Flame, Beef, Wheat, Droplets, Leaf, Apple, AlertTriangle, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown } from "lucide-react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { mockRecipes } from "@/lib/mockData";
 import { Recipe, NutritionInfo } from "@/lib/types";
-import { useMealPlans } from "@/hooks/useMealPlans";
+import { useMealPlans, AcceptanceStatus, AcceptanceMap } from "@/hooks/useMealPlans";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
@@ -32,20 +32,30 @@ const MEALS = ["Breakfast", "Lunch", "Dinner"] as const;
 
 const slotKey = (day: string, meal: string) => `${day}-${meal}`;
 
-function DraggableRecipe({ recipe, draggableId, overlay }: { recipe: Recipe; draggableId: string; overlay?: boolean }) {
+/** Returns true if the given day in the given week is today or already in the past */
+const isSlotActionable = (day: string, weekStart: Date): boolean => {
+  const idx = DAYS.indexOf(day);
+  const dayDate = new Date(weekStart);
+  dayDate.setDate(dayDate.getDate() + idx);
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999);
+  return dayDate <= endOfToday;
+};
+
+function DragOverlayRecipe({ recipe }: { recipe: Recipe }) {
+  return (
+    <div className="flex items-center gap-2 rounded-xl gradient-warm p-3 text-primary-foreground shadow-warm max-w-[200px]">
+      <RecipeIcon icon={recipe.icon} size={18} />
+      <span className="text-xs font-bold truncate">{recipe.title}</span>
+    </div>
+  );
+}
+
+function DraggableRecipe({ recipe, draggableId }: { recipe: Recipe; draggableId: string }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: draggableId,
     data: { recipe },
   });
-
-  if (overlay) {
-    return (
-      <div className="flex items-center gap-2 rounded-xl gradient-warm p-3 text-primary-foreground shadow-warm max-w-[200px]">
-        <RecipeIcon icon={recipe.icon} size={18} />
-        <span className="text-xs font-bold truncate">{recipe.title}</span>
-      </div>
-    );
-  }
 
   return (
     <div
@@ -73,6 +83,9 @@ function DroppableSlot({
   recipe,
   onRemove,
   showLabel = false,
+  acceptance = null,
+  onSetAcceptance,
+  isActionable = false,
 }: {
   slotId: string;
   day: string;
@@ -80,6 +93,9 @@ function DroppableSlot({
   recipe: Recipe | null;
   onRemove: () => void;
   showLabel?: boolean;
+  acceptance?: AcceptanceStatus | null;
+  onSetAcceptance?: (status: AcceptanceStatus | null) => void;
+  isActionable?: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: slotId,
@@ -88,16 +104,20 @@ function DroppableSlot({
 
   const mealIcon = meal === "Breakfast" ? <Sunrise size={12} className="text-primary/70" /> : meal === "Lunch" ? <Sun size={12} className="text-primary/70" /> : <Moon size={12} className="text-primary/70" />;
 
+  const bgClass = isOver
+    ? "border-primary bg-primary/10"
+    : recipe && acceptance === "accepted"
+    ? "border-transparent bg-green-50 shadow-soft"
+    : recipe && acceptance === "rejected"
+    ? "border-transparent bg-red-50/50 shadow-soft"
+    : recipe
+    ? "border-transparent bg-card shadow-soft"
+    : "border-border bg-muted/30";
+
   return (
     <div
       ref={setNodeRef}
-      className={`relative min-h-[56px] rounded-xl border-2 border-dashed transition-colors p-2 ${
-        isOver
-          ? "border-primary bg-primary/10"
-          : recipe
-          ? "border-transparent bg-card shadow-soft"
-          : "border-border bg-muted/30"
-      }`}
+      className={`relative min-h-[56px] rounded-xl border-2 border-dashed transition-colors p-2 ${bgClass}`}
     >
       {showLabel && (
         <div className="flex items-center gap-1 mb-1.5">
@@ -106,18 +126,48 @@ function DroppableSlot({
         </div>
       )}
       {recipe ? (
-        <div className="flex items-center gap-1.5">
-          <RecipeIcon icon={recipe.icon} size={16} className="shrink-0" />
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold text-foreground truncate leading-tight">{recipe.title}</p>
-            <p className="text-[10px] text-muted-foreground">{recipe.cookTime}</p>
+        <div>
+          <div className="flex items-center gap-1.5">
+            <RecipeIcon icon={recipe.icon} size={16} className="shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-bold text-foreground truncate leading-tight">{recipe.title}</p>
+              <p className="text-[10px] text-muted-foreground">{recipe.cookTime}</p>
+            </div>
+            <button
+              onClick={onRemove}
+              className="shrink-0 rounded-full p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              <Trash2 size={12} />
+            </button>
           </div>
-          <button
-            onClick={onRemove}
-            className="shrink-0 rounded-full p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-          >
-            <Trash2 size={12} />
-          </button>
+          {/* Acceptance buttons — only shown for today/past days */}
+          {isActionable && onSetAcceptance && (
+            <div className="flex items-center gap-1 mt-1.5">
+              <span className="text-[9px] text-muted-foreground mr-0.5">Kid ate it?</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); onSetAcceptance(acceptance === "accepted" ? null : "accepted"); }}
+                title="Accepted"
+                className={`rounded-full p-1 transition-colors ${
+                  acceptance === "accepted"
+                    ? "text-green-600 bg-green-100"
+                    : "text-muted-foreground/50 hover:text-green-600 hover:bg-green-50"
+                }`}
+              >
+                <ThumbsUp size={11} />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onSetAcceptance(acceptance === "rejected" ? null : "rejected"); }}
+                title="Rejected"
+                className={`rounded-full p-1 transition-colors ${
+                  acceptance === "rejected"
+                    ? "text-red-500 bg-red-100"
+                    : "text-muted-foreground/50 hover:text-red-500 hover:bg-red-50"
+                }`}
+              >
+                <ThumbsDown size={11} />
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex h-full items-center justify-center">
@@ -133,11 +183,18 @@ function DayCard({
   day,
   planned,
   removeMeal,
+  weekStart,
+  acceptance,
+  onSetAcceptance,
 }: {
   day: string;
   planned: Record<string, Recipe | undefined>;
   removeMeal: (day: string, meal: string) => void;
+  weekStart: Date;
+  acceptance: AcceptanceMap;
+  onSetAcceptance: (day: string, meal: string, status: AcceptanceStatus | null) => void;
 }) {
+  const actionable = isSlotActionable(day, weekStart);
   return (
     <div className="rounded-2xl bg-card border border-border shadow-soft p-4">
       <h4 className="text-sm font-extrabold text-foreground mb-3 gradient-warm bg-clip-text text-transparent">
@@ -155,6 +212,9 @@ function DayCard({
               recipe={planned[key] ?? null}
               onRemove={() => removeMeal(day, meal)}
               showLabel
+              isActionable={actionable}
+              acceptance={acceptance[key] ?? null}
+              onSetAcceptance={(status) => onSetAcceptance(day, meal, status)}
             />
           );
         })}
@@ -298,6 +358,8 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
     goToPreviousWeek,
     goToNextWeek,
     goToCurrentWeek,
+    acceptance,
+    setAcceptance,
   } = useMealPlans();
   const [activeRecipe, setActiveRecipe] = useState<Recipe | null>(null);
   const [showShoppingList, setShowShoppingList] = useState(false);
@@ -331,17 +393,14 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
   }, [weekStart]);
 
   const shoppingList = useMemo(() => {
-    const countMap = new Map<string, number>();
+    const seen = new Set<string>();
     Object.values(planned).forEach((recipe) => {
       if (!recipe) return;
-      recipe.ingredients.forEach((ing) => {
-        const key = ing.toLowerCase().trim();
-        countMap.set(key, (countMap.get(key) || 0) + 1);
-      });
+      recipe.ingredients.forEach((ing) => seen.add(ing.toLowerCase().trim()));
     });
-    return Array.from(countMap.entries())
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([name, count]) => ({ name, count, display: count > 1 ? `${name} (×${count})` : name }));
+    return Array.from(seen)
+      .sort((a, b) => a.localeCompare(b))
+      .map((name) => ({ name, display: name }));
   }, [planned]);
 
   const toggleCheck = (name: string) => {
@@ -385,6 +444,16 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
 
   const filledCount = Object.keys(planned).filter((k) => planned[k]).length;
   const totalSlots = DAYS.length * MEALS.length;
+
+  const acceptanceSummary = useMemo(() => {
+    let accepted = 0, rejected = 0;
+    Object.keys(planned).forEach((key) => {
+      if (!planned[key]) return;
+      if (acceptance[key] === "accepted") accepted++;
+      if (acceptance[key] === "rejected") rejected++;
+    });
+    return { accepted, rejected };
+  }, [planned, acceptance]);
 
   if (loading) {
     return (
@@ -462,6 +531,20 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
                 <div className="rounded-full gradient-peach px-3 py-1.5 text-xs font-semibold text-foreground">
                   {filledCount}/{totalSlots} meals
                 </div>
+                {(acceptanceSummary.accepted > 0 || acceptanceSummary.rejected > 0) && (
+                  <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5">
+                    {acceptanceSummary.accepted > 0 && (
+                      <span className="flex items-center gap-1 text-xs font-semibold text-green-600">
+                        <ThumbsUp size={11} /> {acceptanceSummary.accepted}
+                      </span>
+                    )}
+                    {acceptanceSummary.rejected > 0 && (
+                      <span className="flex items-center gap-1 text-xs font-semibold text-red-500">
+                        <ThumbsDown size={11} /> {acceptanceSummary.rejected}
+                      </span>
+                    )}
+                  </div>
+                )}
                 <Button
                   onClick={() => { setShowNutrition(!showNutrition); if (!showNutrition) setShowShoppingList(false); }}
                   className={`rounded-full gap-2 text-xs ${showNutrition ? "gradient-warm text-primary-foreground shadow-warm border-0" : ""}`}
@@ -511,7 +594,15 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
               /* Mobile card view */
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {DAYS.map((day) => (
-                  <DayCard key={day} day={day} planned={planned} removeMeal={removeMeal} />
+                  <DayCard
+                    key={day}
+                    day={day}
+                    planned={planned}
+                    removeMeal={removeMeal}
+                    weekStart={weekStart}
+                    acceptance={acceptance}
+                    onSetAcceptance={setAcceptance}
+                  />
                 ))}
               </div>
             ) : (
@@ -553,6 +644,9 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
                             meal={meal}
                             recipe={planned[key] ?? null}
                             onRemove={() => removeMeal(day, meal)}
+                            isActionable={isSlotActionable(day, weekStart)}
+                            acceptance={acceptance[key] ?? null}
+                            onSetAcceptance={(status) => setAcceptance(day, meal, status)}
                           />
                         );
                       })}
@@ -648,7 +742,7 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
       </div>
 
       <DragOverlay>
-        {activeRecipe ? <DraggableRecipe recipe={activeRecipe} draggableId="recipe-overlay" overlay /> : null}
+        {activeRecipe ? <DragOverlayRecipe recipe={activeRecipe} /> : null}
       </DragOverlay>
     </DndContext>
   );

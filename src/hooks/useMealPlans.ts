@@ -6,6 +6,26 @@ import { Recipe } from "@/lib/types";
 type PlannedMeals = Record<string, Recipe | null>;
 type GuestPlansByWeek = Record<string, PlannedMeals>;
 
+export type AcceptanceStatus = "accepted" | "rejected";
+export type AcceptanceMap = Record<string, AcceptanceStatus>;
+
+const ACCEPTANCE_KEY = "nourish_meal_acceptance";
+
+const loadAcceptanceStore = (): Record<string, AcceptanceMap> => {
+  try {
+    const raw = localStorage.getItem(ACCEPTANCE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveAcceptanceStore = (store: Record<string, AcceptanceMap>) => {
+  try {
+    localStorage.setItem(ACCEPTANCE_KEY, JSON.stringify(store));
+  } catch {}
+};
+
 const getWeekStartDate = (date: Date) => {
   const start = new Date(date);
   start.setHours(0, 0, 0, 0);
@@ -28,6 +48,12 @@ export function useMealPlans() {
   const [loading, setLoading] = useState(true);
   const [weekStart, setWeekStart] = useState<Date>(() => getWeekStartDate(new Date()));
   const guestPlansRef = useRef<GuestPlansByWeek>({});
+
+  // Meal acceptance state — persisted in localStorage
+  const [acceptance, setAcceptanceState] = useState<AcceptanceMap>(() => {
+    const iso = toDateString(getWeekStartDate(new Date()));
+    return loadAcceptanceStore()[iso] ?? {};
+  });
 
   const weekStartIso = useMemo(() => toDateString(weekStart), [weekStart]);
 
@@ -129,6 +155,34 @@ export function useMealPlans() {
     }
   };
 
+  // Reload acceptance data when navigating weeks
+  useEffect(() => {
+    setAcceptanceState(loadAcceptanceStore()[weekStartIso] ?? {});
+  }, [weekStartIso]);
+
+  const setAcceptance = useCallback(
+    (day: string, meal: string, status: AcceptanceStatus | null) => {
+      const key = `${day}-${meal}`;
+      setAcceptanceState((prev) => {
+        const next = { ...prev };
+        if (status === null) {
+          delete next[key];
+        } else {
+          next[key] = status;
+        }
+        const store = loadAcceptanceStore();
+        if (Object.keys(next).length === 0) {
+          delete store[weekStartIso];
+        } else {
+          store[weekStartIso] = next;
+        }
+        saveAcceptanceStore(store);
+        return next;
+      });
+    },
+    [weekStartIso]
+  );
+
   const goToPreviousWeek = () => {
     setWeekStart((prev) => {
       const next = new Date(prev);
@@ -159,5 +213,7 @@ export function useMealPlans() {
     goToPreviousWeek,
     goToNextWeek,
     goToCurrentWeek,
+    acceptance,
+    setAcceptance,
   };
 }

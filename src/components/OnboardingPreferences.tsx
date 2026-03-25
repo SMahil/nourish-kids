@@ -31,7 +31,7 @@ const ToggleChip = ({
 );
 
 const OnboardingPreferences = ({ onComplete, onBack }: Props) => {
-  const [cookingTime, setCookingTime] = useState("15 min");
+  const [cookingTime, setCookingTime] = useState("30 min");
   const [skillLevel, setSkillLevel] = useState("Beginner");
   const [cuisines, setCuisines] = useState<string[]>([]);
 
@@ -58,7 +58,7 @@ const OnboardingPreferences = ({ onComplete, onBack }: Props) => {
               ⏱ How much time do you usually have?
             </label>
             <div className="flex flex-wrap gap-2">
-              {["5 min", "15 min", "30 min", "45+ min"].map((t) => (
+              {["15 min", "30 min", "45+ min"].map((t) => (
                 <ToggleChip key={t} label={t} selected={cookingTime === t} onToggle={() => setCookingTime(t)} />
               ))}
             </div>

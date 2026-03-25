@@ -33,19 +33,35 @@ const ToggleChip = ({
   </button>
 );
 
+const DIET_TYPES = [
+  "No Restrictions",
+  "Vegetarian",
+  "Vegan",
+  "Pescatarian",
+  "Gluten-Free",
+  "Dairy-Free",
+  "Halal",
+  "Kosher",
+];
+
 const emptyKid: KidProfile = {
   name: "",
   age: "",
   allergies: [],
   dislikes: [],
   favorites: [],
-  dietType: "None",
+  dietType: "No Restrictions",
 };
 
 const OnboardingKidProfile = ({ onComplete, onBack }: Props) => {
   const [kids, setKids] = useState<KidProfile[]>([{ ...emptyKid }]);
   const [activeKid, setActiveKid] = useState(0);
   const [step, setStep] = useState(0); // 0=basics, 1=allergies, 2=dislikes, 3=favorites
+
+  // Custom text inputs for each step
+  const [customAllergy, setCustomAllergy] = useState("");
+  const [customDislike, setCustomDislike] = useState("");
+  const [customFavorite, setCustomFavorite] = useState("");
 
   const current = kids[activeKid];
 
@@ -57,9 +73,40 @@ const OnboardingKidProfile = ({ onComplete, onBack }: Props) => {
 
   const toggleArray = (field: "allergies" | "dislikes" | "favorites", value: string) => {
     const arr = current[field];
+    // If toggling a real allergy/food while "None" is active, remove "None"
+    const base = field === "allergies" && arr.includes("None") && value !== "None"
+      ? arr.filter((v) => v !== "None")
+      : arr;
     updateKid({
-      [field]: arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value],
+      [field]: base.includes(value) ? base.filter((v) => v !== value) : [...base, value],
     });
+  };
+
+  const toggleNoneAllergy = () => {
+    // "None" is mutually exclusive — selecting it clears everything else
+    if (current.allergies.includes("None")) {
+      updateKid({ allergies: [] });
+    } else {
+      updateKid({ allergies: ["None"] });
+    }
+  };
+
+  const addCustomItem = (
+    field: "allergies" | "dislikes" | "favorites",
+    value: string,
+    clear: () => void
+  ) => {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    // Remove "None" if adding a real allergy
+    const base =
+      field === "allergies" && current.allergies.includes("None")
+        ? []
+        : current[field];
+    if (!base.includes(trimmed)) {
+      updateKid({ [field]: [...base, trimmed] });
+    }
+    clear();
   };
 
   const addKid = () => {
@@ -101,7 +148,7 @@ const OnboardingKidProfile = ({ onComplete, onBack }: Props) => {
           <div>
             <label className="mb-2 block text-sm font-semibold text-foreground">Diet Type</label>
             <div className="flex flex-wrap gap-2">
-              {["None", "Vegetarian", "Vegan", "Halal", "Kosher"].map((d) => (
+              {DIET_TYPES.map((d) => (
                 <ToggleChip
                   key={d}
                   label={d}
@@ -117,45 +164,160 @@ const OnboardingKidProfile = ({ onComplete, onBack }: Props) => {
     {
       title: "Any allergies?",
       content: (
-        <div className="flex flex-wrap gap-2">
-          {commonAllergies.map((a) => (
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {/* None chip — mutually exclusive */}
             <ToggleChip
-              key={a}
-              label={a}
-              selected={current.allergies.includes(a)}
-              onToggle={() => toggleArray("allergies", a)}
+              label="None"
+              selected={current.allergies.includes("None")}
+              onToggle={toggleNoneAllergy}
             />
-          ))}
+            {commonAllergies.map((a) => (
+              <ToggleChip
+                key={a}
+                label={a}
+                selected={current.allergies.includes(a)}
+                onToggle={() => toggleArray("allergies", a)}
+              />
+            ))}
+            {/* Show any custom allergies */}
+            {current.allergies
+              .filter((a) => a !== "None" && !commonAllergies.includes(a))
+              .map((a) => (
+                <ToggleChip
+                  key={a}
+                  label={a}
+                  selected
+                  onToggle={() => toggleArray("allergies", a)}
+                />
+              ))}
+          </div>
+          {/* Custom allergy input */}
+          <div className="flex gap-2 pt-1">
+            <Input
+              value={customAllergy}
+              onChange={(e) => setCustomAllergy(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter")
+                  addCustomItem("allergies", customAllergy, () => setCustomAllergy(""));
+              }}
+              placeholder="Other allergy (type & press Add)"
+              className="rounded-xl bg-card border-border text-sm"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full shrink-0"
+              onClick={() =>
+                addCustomItem("allergies", customAllergy, () => setCustomAllergy(""))
+              }
+            >
+              <Plus size={14} />
+            </Button>
+          </div>
         </div>
       ),
     },
     {
       title: "What do they NOT like? 😬",
       content: (
-        <div className="flex flex-wrap gap-2">
-          {commonDislikes.map((d) => (
-            <ToggleChip
-              key={d}
-              label={d}
-              selected={current.dislikes.includes(d)}
-              onToggle={() => toggleArray("dislikes", d)}
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {commonDislikes.map((d) => (
+              <ToggleChip
+                key={d}
+                label={d}
+                selected={current.dislikes.includes(d)}
+                onToggle={() => toggleArray("dislikes", d)}
+              />
+            ))}
+            {/* Custom dislikes */}
+            {current.dislikes
+              .filter((d) => !commonDislikes.includes(d))
+              .map((d) => (
+                <ToggleChip
+                  key={d}
+                  label={d}
+                  selected
+                  onToggle={() => toggleArray("dislikes", d)}
+                />
+              ))}
+          </div>
+          <div className="flex gap-2 pt-1">
+            <Input
+              value={customDislike}
+              onChange={(e) => setCustomDislike(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter")
+                  addCustomItem("dislikes", customDislike, () => setCustomDislike(""));
+              }}
+              placeholder="Something else (type & press Add)"
+              className="rounded-xl bg-card border-border text-sm"
             />
-          ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full shrink-0"
+              onClick={() =>
+                addCustomItem("dislikes", customDislike, () => setCustomDislike(""))
+              }
+            >
+              <Plus size={14} />
+            </Button>
+          </div>
         </div>
       ),
     },
     {
       title: "What do they LOVE? 😍",
       content: (
-        <div className="flex flex-wrap gap-2">
-          {commonFavorites.map((f) => (
-            <ToggleChip
-              key={f}
-              label={f}
-              selected={current.favorites.includes(f)}
-              onToggle={() => toggleArray("favorites", f)}
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {commonFavorites.map((f) => (
+              <ToggleChip
+                key={f}
+                label={f}
+                selected={current.favorites.includes(f)}
+                onToggle={() => toggleArray("favorites", f)}
+              />
+            ))}
+            {/* Custom favorites */}
+            {current.favorites
+              .filter((f) => !commonFavorites.includes(f))
+              .map((f) => (
+                <ToggleChip
+                  key={f}
+                  label={f}
+                  selected
+                  onToggle={() => toggleArray("favorites", f)}
+                />
+              ))}
+          </div>
+          <div className="flex gap-2 pt-1">
+            <Input
+              value={customFavorite}
+              onChange={(e) => setCustomFavorite(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter")
+                  addCustomItem("favorites", customFavorite, () => setCustomFavorite(""));
+              }}
+              placeholder="Something else (type & press Add)"
+              className="rounded-xl bg-card border-border text-sm"
             />
-          ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full shrink-0"
+              onClick={() =>
+                addCustomItem("favorites", customFavorite, () => setCustomFavorite(""))
+              }
+            >
+              <Plus size={14} />
+            </Button>
+          </div>
         </div>
       ),
     },
