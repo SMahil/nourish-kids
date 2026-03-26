@@ -267,18 +267,22 @@ const Dashboard = ({ kids, cuisinePreferences, maxCookingTime, onGoToGrocery, on
           ) : (
             /* Recipes view */
             <>
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-                  {hasAiRecipes ? <Bot size={18} className="text-primary" /> : <Sparkles size={18} className="text-primary" />}
-                  {hasAiRecipes ? "AI-Personalized for your kids" : "Recommended for today"}
-                </h2>
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h2 className="text-xl font-extrabold text-foreground leading-tight">
+                    Tonight's picks for {kids[0]?.name || "your child"} 🌿
+                  </h2>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    Scored for their taste profile — sorted by best match
+                  </p>
+                </div>
                 {hasAiRecipes && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={fetchAiSuggestions}
                     disabled={isLoading}
-                    className="text-xs"
+                    className="text-xs shrink-0 mt-0.5"
                   >
                     <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} />
                     Refresh
