@@ -76,6 +76,83 @@ function DraggableRecipe({ recipe, draggableId }: { recipe: Recipe; draggableId:
   );
 }
 
+function DraggableSlotRecipe({
+  recipe,
+  slotId,
+  day,
+  meal,
+  onRemove,
+  acceptance,
+  onSetAcceptance,
+  isActionable,
+}: {
+  recipe: Recipe;
+  slotId: string;
+  day: string;
+  meal: string;
+  onRemove: () => void;
+  acceptance: AcceptanceStatus | null;
+  onSetAcceptance?: (status: AcceptanceStatus | null) => void;
+  isActionable: boolean;
+}) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `from-slot-${slotId}`,
+    data: { recipe, fromSlot: { day, meal } },
+  });
+
+  return (
+    <div ref={setNodeRef} className={isDragging ? "opacity-30" : ""}>
+      <div className="flex items-center gap-1.5">
+        <span
+          {...listeners}
+          {...attributes}
+          className="shrink-0 cursor-grab active:cursor-grabbing touch-none text-muted-foreground/60 hover:text-muted-foreground"
+        >
+          <GripVertical size={12} />
+        </span>
+        <RecipeIcon icon={recipe.icon} size={16} className="shrink-0" />
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-bold text-foreground truncate leading-tight">{recipe.title}</p>
+          <p className="text-[10px] text-muted-foreground">{recipe.cookTime}</p>
+        </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); onRemove(); }}
+          className="shrink-0 rounded-full p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+        >
+          <Trash2 size={12} />
+        </button>
+      </div>
+      {isActionable && onSetAcceptance && (
+        <div className="flex items-center gap-1 mt-1.5">
+          <span className="text-[9px] text-muted-foreground mr-0.5">Kid ate it?</span>
+          <button
+            onClick={(e) => { e.stopPropagation(); onSetAcceptance(acceptance === "accepted" ? null : "accepted"); }}
+            title="Accepted"
+            className={`rounded-full p-1 transition-colors ${
+              acceptance === "accepted"
+                ? "text-green-600 bg-green-100"
+                : "text-muted-foreground/50 hover:text-green-600 hover:bg-green-50"
+            }`}
+          >
+            <ThumbsUp size={11} />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onSetAcceptance(acceptance === "rejected" ? null : "rejected"); }}
+            title="Rejected"
+            className={`rounded-full p-1 transition-colors ${
+              acceptance === "rejected"
+                ? "text-red-500 bg-red-100"
+                : "text-muted-foreground/50 hover:text-red-500 hover:bg-red-50"
+            }`}
+          >
+            <ThumbsDown size={11} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DroppableSlot({
   slotId,
   day,
@@ -126,54 +203,35 @@ function DroppableSlot({
         </div>
       )}
       {recipe ? (
-        <div>
-          <div className="flex items-center gap-1.5">
-            <RecipeIcon icon={recipe.icon} size={16} className="shrink-0" />
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-bold text-foreground truncate leading-tight">{recipe.title}</p>
-              <p className="text-[10px] text-muted-foreground">{recipe.cookTime}</p>
-            </div>
-            <button
-              onClick={onRemove}
-              className="shrink-0 rounded-full p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-            >
-              <Trash2 size={12} />
-            </button>
-          </div>
-          {/* Acceptance buttons — only shown for today/past days */}
-          {isActionable && onSetAcceptance && (
-            <div className="flex items-center gap-1 mt-1.5">
-              <span className="text-[9px] text-muted-foreground mr-0.5">Kid ate it?</span>
-              <button
-                onClick={(e) => { e.stopPropagation(); onSetAcceptance(acceptance === "accepted" ? null : "accepted"); }}
-                title="Accepted"
-                className={`rounded-full p-1 transition-colors ${
-                  acceptance === "accepted"
-                    ? "text-green-600 bg-green-100"
-                    : "text-muted-foreground/50 hover:text-green-600 hover:bg-green-50"
-                }`}
-              >
-                <ThumbsUp size={11} />
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); onSetAcceptance(acceptance === "rejected" ? null : "rejected"); }}
-                title="Rejected"
-                className={`rounded-full p-1 transition-colors ${
-                  acceptance === "rejected"
-                    ? "text-red-500 bg-red-100"
-                    : "text-muted-foreground/50 hover:text-red-500 hover:bg-red-50"
-                }`}
-              >
-                <ThumbsDown size={11} />
-              </button>
-            </div>
-          )}
-        </div>
+        <DraggableSlotRecipe
+          recipe={recipe}
+          slotId={slotId}
+          day={day}
+          meal={meal}
+          onRemove={onRemove}
+          acceptance={acceptance}
+          onSetAcceptance={onSetAcceptance}
+          isActionable={isActionable}
+        />
       ) : (
         <div className="flex h-full items-center justify-center">
           <span className="text-[10px] text-muted-foreground">Drop here</span>
         </div>
       )}
+    </div>
+  );
+}
+
+function DroppableSidebar({ children }: { children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({ id: "sidebar-recipe-list" });
+  return (
+    <div
+      ref={setNodeRef}
+      className={`flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible lg:max-h-[70vh] lg:overflow-y-auto lg:pr-1 pb-2 lg:pb-0 rounded-xl transition-colors ${
+        isOver ? "bg-primary/8 ring-2 ring-primary ring-dashed p-1" : ""
+      }`}
+    >
+      {children}
     </div>
   );
 }
@@ -436,8 +494,25 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
     const recipe: Recipe = active.data.current?.recipe;
     if (!recipe) return;
 
+    const fromSlot = active.data.current?.fromSlot as { day: string; meal: string } | undefined;
+
+    // Dropped onto the sidebar — remove from source slot
+    if (over.id === "sidebar-recipe-list") {
+      if (fromSlot?.day && fromSlot?.meal) {
+        removeMeal(fromSlot.day, fromSlot.meal);
+      }
+      return;
+    }
+
+    // Dropped onto a calendar slot
     const target = over.data.current as { day?: string; meal?: string } | undefined;
     if (!target?.day || !target?.meal) return;
+
+    // Slot-to-slot move: remove from source first (unless same slot)
+    if (fromSlot?.day && fromSlot?.meal) {
+      if (fromSlot.day === target.day && fromSlot.meal === target.meal) return;
+      removeMeal(fromSlot.day, fromSlot.meal);
+    }
 
     setMeal(target.day, target.meal, recipe);
   };
@@ -491,7 +566,7 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
                   <CalendarDays size={22} className="text-primary" /> Weekly Meal Planner
                 </h1>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Drag recipes from the sidebar into your week
+                  Drag recipes into your week — drag back to the sidebar to remove
                 </p>
               </div>
               <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -581,13 +656,13 @@ const WeeklyPlanner = ({ onBack, recipes: propRecipes }: Props) => {
               <h3 className="mb-2 text-sm font-bold text-foreground flex items-center gap-1.5">
                 <UtensilsCrossed size={14} className="text-primary" /> Recipes
               </h3>
-              <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible lg:max-h-[70vh] lg:overflow-y-auto lg:pr-1 pb-2 lg:pb-0">
+              <DroppableSidebar>
                 {(propRecipes && propRecipes.length > 0 ? propRecipes : mockRecipes).map((recipe, index) => (
                   <div key={`${recipe.id}-${index}`} className="shrink-0 lg:shrink">
                     <DraggableRecipe recipe={recipe} draggableId={`recipe-${recipe.id}-${index}`} />
                   </div>
                 ))}
-              </div>
+              </DroppableSidebar>
             </motion.div>
 
             {isMobile ? (
