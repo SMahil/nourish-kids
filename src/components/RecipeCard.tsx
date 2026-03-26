@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Clock, Users, ThumbsUp, ChevronDown, ChevronUp, Flame, Beef, Wheat, Droplets, Leaf, Globe, Heart, ShieldCheck, ThumbsDown, Sparkles } from "lucide-react";
+import { Clock, Users, ChevronDown, ChevronUp, Flame, Beef, Wheat, Droplets, Leaf, Globe, Heart, ShieldCheck, ThumbsDown } from "lucide-react";
 import { Recipe, KidProfile } from "@/lib/types";
 import RecipeIcon from "@/components/RecipeIcon";
 
@@ -85,6 +85,12 @@ const reasonIcons = {
   respects: <ThumbsDown size={10} className="shrink-0" />,
 };
 
+const getMatchColor = (score: number) => {
+  if (score >= 80) return { bg: "bg-green-500", ring: "ring-green-300", text: "text-white" };
+  if (score >= 60) return { bg: "bg-amber-400", ring: "ring-amber-200", text: "text-white" };
+  return { bg: "bg-red-500", ring: "ring-red-300", text: "text-white" };
+};
+
 const RecipeCard = ({ recipe, index, kids, isFavorite, onToggleFavorite }: Props) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -100,6 +106,9 @@ const RecipeCard = ({ recipe, index, kids, isFavorite, onToggleFavorite }: Props
     return [];
   }, [recipe, kids]);
 
+  const kidName = kids && kids.length === 1 ? kids[0].name : kids && kids.length > 1 ? "your kids" : "your child";
+  const matchColor = getMatchColor(recipe.kidApproval);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -108,46 +117,54 @@ const RecipeCard = ({ recipe, index, kids, isFavorite, onToggleFavorite }: Props
       className="overflow-hidden rounded-2xl bg-card shadow-soft border border-border"
     >
       <div className="p-5">
-        <div className="mb-3 flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-              <RecipeIcon icon={recipe.icon} size={22} />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-foreground">{recipe.title}</h3>
-              <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Clock size={14} /> {recipe.cookTime}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Users size={14} /> {recipe.servings}
-                </span>
-                {recipe.cuisine && (
-                  <span className="flex items-center gap-1">
-                    <Globe size={14} /> {recipe.cuisine}
-                  </span>
-                )}
-              </div>
-            </div>
+        <div className="mb-3 flex items-start gap-4">
+          {/* Confidence badge */}
+          <div
+            className={`shrink-0 flex flex-col items-center justify-center w-20 h-20 rounded-full ring-4 ${matchColor.bg} ${matchColor.ring} ${matchColor.text} shadow-md`}
+            title="How well this recipe matches your kids' preferences"
+          >
+            <span className="text-2xl font-black leading-none">{recipe.kidApproval}%</span>
+            <span className="text-[9px] font-semibold text-center leading-tight mt-0.5 px-1 opacity-90">
+              match for<br />{kidName}
+            </span>
           </div>
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-1 rounded-full bg-accent/20 px-3 py-1 text-sm font-semibold text-accent-foreground" title="How well this recipe matches your kids' preferences">
-              <Sparkles size={14} />
-              <span>{recipe.kidApproval}% match</span>
+
+          {/* Title + meta */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                  <RecipeIcon icon={recipe.icon} size={20} />
+                </div>
+                <h3 className="text-base font-bold text-foreground leading-tight">{recipe.title}</h3>
+              </div>
+              {onToggleFavorite && (
+                <button
+                  onClick={() => onToggleFavorite(recipe)}
+                  className={`shrink-0 rounded-full p-1.5 transition-all ${
+                    isFavorite
+                      ? "text-destructive bg-destructive/10 scale-110"
+                      : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  }`}
+                  title={isFavorite ? "Remove from favorites" : "Save to favorites"}
+                >
+                  <Heart size={18} className={isFavorite ? "fill-current" : ""} />
+                </button>
+              )}
             </div>
-            {onToggleFavorite && (
-              <button
-                onClick={() => onToggleFavorite(recipe)}
-                className={`rounded-full p-1.5 transition-all ${
-                  isFavorite
-                    ? "text-destructive bg-destructive/10 scale-110"
-                    : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                }`}
-                title={isFavorite ? "Remove from favorites" : "Save to favorites"}
-              >
-                <Heart size={18} className={isFavorite ? "fill-current" : ""} />
-              </button>
-            )}
+            <div className="mt-1.5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Clock size={13} /> {recipe.cookTime}
+              </span>
+              <span className="flex items-center gap-1">
+                <Users size={13} /> {recipe.servings}
+              </span>
+              {recipe.cuisine && (
+                <span className="flex items-center gap-1">
+                  <Globe size={13} /> {recipe.cuisine}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
