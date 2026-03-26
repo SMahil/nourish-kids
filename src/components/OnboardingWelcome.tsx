@@ -27,11 +27,10 @@ const OnboardingWelcome = ({ onStart }: Props) => {
           NourishKids
         </h1>
         <p className="mb-2 text-lg font-semibold text-primary">
-          Meal magic for busy parents
+          Know before you cook — will your child actually eat it?
         </p>
         <p className="mb-8 text-muted-foreground leading-relaxed">
-          No more mealtime stress. Tell us what your kids love (and hate), and we'll suggest quick, 
-          nourishing recipes they'll actually eat.
+          Tell us what your child loves and hates. We'll score every recipe for your specific kid — before you spend 30 minutes cooking it.
         </p>
         <Button
           onClick={onStart}
